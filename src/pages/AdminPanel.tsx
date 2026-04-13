@@ -124,7 +124,10 @@ const AdminPanel = () => {
                     <p className="text-sm font-medium text-foreground truncate">{t.label}</p>
                     <p className="text-xs text-muted-foreground font-mono truncate">{t.token}</p>
                   </div>
-                  <div className="flex items-center gap-1 ml-2">
+                  <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    {isTokenExpired(t) && (
+                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full mr-1">Expired</span>
+                    )}
                     {t.used && (
                       <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full mr-1">Used</span>
                     )}
