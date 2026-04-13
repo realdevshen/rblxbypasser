@@ -7,6 +7,7 @@ import TokenLogin from "./pages/TokenLogin";
 import AdminLogin from "./pages/AdminLogin";
 import AdminPanel from "./pages/AdminPanel";
 import Dashboard from "./pages/Dashboard";
+import BypassPage from "./pages/BypassPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/bypass" element={<BypassPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
