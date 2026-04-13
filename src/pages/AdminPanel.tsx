@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, Copy, Settings, LogOut, Webhook } from "lucide-react";
-import { getTokens, generateToken, deleteToken, Token } from "@/lib/tokenStore";
+import { Plus, Trash2, Copy, LogOut, Webhook, ArrowLeft, Clock } from "lucide-react";
+import { getTokens, generateToken, deleteToken, isTokenExpired, Token } from "@/lib/tokenStore";
 import { toast } from "sonner";
 
 const WEBHOOK_KEY = "discord_webhook_url";
@@ -9,6 +9,7 @@ const WEBHOOK_KEY = "discord_webhook_url";
 const AdminPanel = () => {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [label, setLabel] = useState("");
+  const [expiryHours, setExpiryHours] = useState(24);
   const [webhookUrl, setWebhookUrl] = useState("");
   const [showWebhook, setShowWebhook] = useState(false);
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const AdminPanel = () => {
       toast.error("Enter a label for the token");
       return;
     }
-    const newToken = generateToken(label.trim());
+    const newToken = generateToken(label.trim(), expiryHours);
     setTokens(getTokens());
     setLabel("");
     toast.success(`Token generated: ${newToken.token.slice(0, 12)}...`);
@@ -61,9 +62,14 @@ const AdminPanel = () => {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
-          <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors">
-            <LogOut size={20} />
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
+          </div>
+          <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-sm">
+            <LogOut size={16} /> Logout
           </button>
         </div>
 
@@ -87,6 +93,22 @@ const AdminPanel = () => {
               Generate
             </button>
           </div>
+          <div className="flex items-center gap-2">
+            <Clock size={14} className="text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Expires in</span>
+            <select
+              value={expiryHours}
+              onChange={e => setExpiryHours(Number(e.target.value))}
+              className="bg-secondary border border-border rounded-lg px-3 py-1.5 text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value={1}>1 hour</option>
+              <option value={6}>6 hours</option>
+              <option value={12}>12 hours</option>
+              <option value={24}>24 hours</option>
+              <option value={72}>3 days</option>
+              <option value={168}>7 days</option>
+            </select>
+          </div>
         </div>
 
         {/* Token List */}
@@ -102,7 +124,10 @@ const AdminPanel = () => {
                     <p className="text-sm font-medium text-foreground truncate">{t.label}</p>
                     <p className="text-xs text-muted-foreground font-mono truncate">{t.token}</p>
                   </div>
-                  <div className="flex items-center gap-1 ml-2">
+                  <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    {isTokenExpired(t) && (
+                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full mr-1">Expired</span>
+                    )}
                     {t.used && (
                       <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full mr-1">Used</span>
                     )}
