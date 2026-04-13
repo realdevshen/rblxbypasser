@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
 import { toast } from "sonner";
 
-const ADMIN_PASSWORD = "admin123"; // For demo only — never do this in production
+const ADMIN_PASSWORD = "admin123";
 
 const AdminLogin = () => {
   const [password, setPassword] = useState("");
@@ -22,30 +22,53 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-8 text-center">
-        <ShieldIcon />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin Access</h1>
-          <p className="mt-2 text-muted-foreground text-sm">Enter the admin password</p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-sm space-y-8 text-center relative z-10 animate-fade-in-up">
+        <button
+          onClick={() => navigate("/")}
+          className="absolute -top-2 left-0 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
+
+        <ShieldIcon size="lg" />
+
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black tracking-tight text-foreground glow-text">
+            Admin Access
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Enter the admin password
+          </p>
         </div>
 
-        <div className="bg-card rounded-xl p-6 space-y-5 border border-border">
+        <div className="card-glow rounded-2xl p-6 space-y-5">
           <div className="text-left space-y-2">
-            <label className="text-sm font-medium text-foreground">Password</label>
-            <input
-              type={show ? "text" : "password"}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleLogin()}
-              placeholder="Enter admin password"
-              className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+            <label className="text-sm font-semibold text-foreground">Password</label>
+            <div className="relative">
+              <input
+                type={show ? "text" : "password"}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleLogin()}
+                placeholder="Enter admin password"
+                className="input-field pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShow(!show)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {show ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button
             onClick={handleLogin}
-            className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            className="w-full shimmer text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5 glow-btn transition-all duration-300"
           >
             <Lock size={18} />
             Enter Admin Panel
