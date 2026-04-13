@@ -30,6 +30,7 @@ const TokenLogin = () => {
       }
       toast.success("Access granted!");
       sessionStorage.setItem("authenticated", "true");
+      sessionStorage.setItem("token_label", result.label);
       navigate("/dashboard");
     } else {
       toast.error("Invalid or expired token");
