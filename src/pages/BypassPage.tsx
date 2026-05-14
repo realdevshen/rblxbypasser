@@ -184,6 +184,9 @@ const BypassPage = () => {
               </>
             )}
           </button>
+          <p className="text-[11px] text-muted-foreground text-center">
+            {remaining} / {MAX_ATTEMPTS_PER_MIN} attempts remaining this minute
+          </p>
         </div>
 
         {/* Log Output */}
