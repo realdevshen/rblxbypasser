@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
-import ShieldIcon from "@/components/ShieldIcon";
+
 import { toast } from "sonner";
 
 const ADMIN_PASSWORD = "admin123";
