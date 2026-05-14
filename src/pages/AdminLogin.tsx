@@ -25,23 +25,17 @@ const AdminLogin = () => {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-sm space-y-8 text-center relative z-10 animate-fade-in-up">
-        <button
-          onClick={() => navigate("/")}
-          className="absolute -top-2 left-0 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-
-        <ShieldIcon size="lg" />
-
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black tracking-tight text-foreground glow-text">
-            Admin Access
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Enter the admin password
-          </p>
+      <div className="w-full max-w-sm space-y-8 relative z-10 animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/")}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
+            <Lock size={18} className="text-primary" />
+          </div>
         </div>
 
         <div className="card-glow rounded-2xl p-6 space-y-5">

