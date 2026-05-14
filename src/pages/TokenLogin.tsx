@@ -69,7 +69,7 @@ const TokenLogin = () => {
                 value={token}
                 onChange={e => setToken(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && handleLogin()}
-                placeholder="tk_xxxxxxxxxxxxxxxx"
+                placeholder="Put Your Xeno Token"
                 className="input-field pr-10"
               />
               <button
