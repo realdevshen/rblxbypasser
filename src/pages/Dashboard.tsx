@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ShieldCheck, LogOut, ArrowLeft, Key, Clock, Activity, User, Zap } from "lucide-react";
-import { getTokens, getLoginLog, isTokenExpired } from "@/lib/tokenStore";
+import { getTokens, isTokenExpired } from "@/lib/tokenStore";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ total: 0, used: 0, expired: 0, active: 0 });
-  const [recentLogins, setRecentLogins] = useState<{ tokenLabel: string; timestamp: Date }[]>([]);
   const [tokenLabel, setTokenLabel] = useState("");
 
   useEffect(() => {
@@ -21,23 +20,12 @@ const Dashboard = () => {
     const expired = tokens.filter(t => isTokenExpired(t)).length;
     const active = tokens.filter(t => !t.used && !isTokenExpired(t)).length;
     setStats({ total: tokens.length, used, expired, active });
-
-    setRecentLogins(getLoginLog().slice(0, 8));
   }, [navigate]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("authenticated");
     sessionStorage.removeItem("token_label");
     navigate("/");
-  };
-
-  const formatTime = (d: Date) => {
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return d.toLocaleDateString();
   };
 
   const statCards = [
@@ -94,30 +82,6 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Recent Activity */}
-        <div className="card-glow rounded-2xl p-5 space-y-3">
-          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Activity size={14} className="text-primary" />
-            </div>
-            Recent Activity
-          </h2>
-          {recentLogins.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-4">No login activity yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {recentLogins.map((log, i) => (
-                <div key={i} className="flex items-center justify-between bg-secondary/50 rounded-xl px-3.5 py-3 border border-border/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
-                    <span className="text-sm text-foreground font-medium">{log.tokenLabel}</span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground">{formatTime(log.timestamp)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
