@@ -47,9 +47,13 @@ export function isTokenExpired(token: Token): boolean {
 
 export function generateToken(label: string, expiryHours: number = DEFAULT_EXPIRY_HOURS): Token {
   const now = new Date();
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const arr = new Uint32Array(22);
+  crypto.getRandomValues(arr);
+  const tokenStr = Array.from(arr, n => chars[n % chars.length]).join('');
   const token: Token = {
     id: crypto.randomUUID(),
-    token: `tk_${crypto.randomUUID().replace(/-/g, '')}`,
+    token: tokenStr,
     label,
     createdAt: now,
     expiresAt: new Date(now.getTime() + expiryHours * 60 * 60 * 1000),
