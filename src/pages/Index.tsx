@@ -15,7 +15,7 @@ const Index = () => {
 
         <div className="space-y-2">
           <h1 className="text-4xl font-black tracking-tight text-foreground glow-text">
-            Roblox Bypasser
+            Xeno Bypasser
           </h1>
           <p className="text-muted-foreground text-sm">
             Secure automation with real-time bypassing
@@ -37,9 +37,6 @@ const Index = () => {
           </button>
         </div>
 
-        <p className="text-xs text-muted-foreground tracking-wider">
-          Secure · Automated · Real-time Bypassing
-        </p>
       </div>
     </div>
   );

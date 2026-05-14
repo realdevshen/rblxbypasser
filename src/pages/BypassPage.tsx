@@ -116,14 +116,14 @@ const BypassPage = () => {
           <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-colors p-1">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Roblox Bypasser</h1>
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
         </div>
 
         {/* Shield */}
         <ShieldIcon size="md" />
 
         <div className="text-center space-y-1">
-          <h2 className="text-2xl font-black text-foreground glow-text">Start Bypass</h2>
+          <h2 className="text-2xl font-black text-foreground glow-text">Xeno Bypass</h2>
           <p className="text-muted-foreground text-xs">Secure automation with real-time bypassing</p>
         </div>
 
@@ -180,13 +180,10 @@ const BypassPage = () => {
               </>
             ) : (
               <>
-                <ShieldCheck size={18} /> Start Bypass
+                <ShieldCheck size={18} /> Xeno Bypass
               </>
             )}
           </button>
-          <p className="text-[11px] text-muted-foreground text-center">
-            {remaining} / {MAX_ATTEMPTS_PER_MIN} attempts remaining this minute
-          </p>
         </div>
 
         {/* Log Output */}

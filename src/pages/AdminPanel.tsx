@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Shield } from "lucide-react";
 import { Plus, Trash2, Copy, LogOut, Webhook, ArrowLeft, Clock, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { getTokens, generateToken, deleteToken, isTokenExpired, Token } from "@/lib/tokenStore";
 import { toast } from "sonner";
@@ -69,9 +70,8 @@ const AdminPanel = () => {
             <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors p-1">
               <ArrowLeft size={20} />
             </button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-              <p className="text-xs text-muted-foreground">{tokens.length} tokens · {activeCount} active</p>
+            <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
+              <Shield size={18} className="text-primary" />
             </div>
           </div>
           <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground transition-colors p-2">

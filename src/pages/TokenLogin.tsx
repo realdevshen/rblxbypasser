@@ -92,9 +92,6 @@ const TokenLogin = () => {
           </button>
         </div>
 
-        <p className="text-xs text-muted-foreground tracking-wider">
-          Secure · Automated · Real-time Bypassing
-        </p>
       </div>
     </div>
   );
