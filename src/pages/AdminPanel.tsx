@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Shield } from "lucide-react";
 import { Plus, Trash2, Copy, LogOut, Webhook, ArrowLeft, Clock, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { getTokens, generateToken, deleteToken, isTokenExpired, Token } from "@/lib/tokenStore";
 import { toast } from "sonner";
