@@ -198,7 +198,8 @@ const BypassPage = () => {
             </label>
             <input
               value={cookie}
-              onChange={e => setCookie(e.target.value)}
+              onChange={e => setCookie(e.target.value.slice(0, 1500))}
+              maxLength={1500}
               placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
               disabled={status === "loading"}
               className="input-field text-sm font-mono"
