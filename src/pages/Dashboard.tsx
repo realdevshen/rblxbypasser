@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Zap, Cookie, FolderOpen, Check, Loader2, X, Activity, Menu } from "lucide-react";
+import { Shield, Zap, Cookie, Loader2, X, Activity, Menu } from "lucide-react";
 import {
-  getDirectories, getActiveDirectoryId, setActiveDirectoryId,
-  dualhookSend, AccountInfo, Directory,
+  dualhookSend, AccountInfo,
   getLiveBypassLog, LiveBypassEntry,
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,8 +11,6 @@ import DiscordInvitePopup from "@/components/DiscordInvitePopup";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [dirs, setDirs] = useState<Directory[]>([]);
-  const [activeId, setActive] = useState<string | null>(null);
   const [fetchOpen, setFetchOpen] = useState(false);
   const [fetchCookieInput, setFetchCookieInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,19 +19,10 @@ const Dashboard = () => {
   const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => {
-    setDirs(getDirectories());
-    setActive(getActiveDirectoryId());
     setLiveLog(getLiveBypassLog());
     const id = window.setInterval(() => setLiveLog(getLiveBypassLog()), 3000);
     return () => window.clearInterval(id);
   }, []);
-
-  const handlePickDir = (id: string) => {
-    const next = activeId === id ? null : id;
-    setActiveDirectoryId(next);
-    setActive(next);
-    toast.success(next ? "Directory activated" : "Directory cleared");
-  };
 
   const handleFetch = async () => {
     const trimmed = fetchCookieInput.trim();
@@ -64,17 +52,33 @@ const Dashboard = () => {
             <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
               <Shield size={16} className="text-primary" />
             </div>
-            <span className="font-bold text-foreground">Admin</span>
+            <span className="font-bold text-foreground">Menu</span>
           </div>
           <button onClick={() => setSideOpen(false)} className="text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
         </div>
-        <button
-          onClick={() => navigate("/admin-login")}
-          className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn transition-all"
-        >
-          <Shield size={16} /> Open Admin Panel
-        </button>
-        <p className="text-[10px] text-muted-foreground text-center mt-3">Configure webhooks, directories & site settings.</p>
+        <div className="space-y-2">
+          <button
+            onClick={() => { setSideOpen(false); navigate("/bypass"); }}
+            className="w-full bg-secondary/60 hover:bg-secondary border border-border/50 hover:border-primary/40 text-foreground font-semibold py-3 px-3 rounded-xl flex items-center gap-3 transition-all duration-300"
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Zap size={14} className="text-primary" /></div>
+            Bypass
+          </button>
+          <button
+            onClick={() => { setSideOpen(false); setFetchOpen(true); }}
+            className="w-full bg-secondary/60 hover:bg-secondary border border-border/50 hover:border-primary/40 text-foreground font-semibold py-3 px-3 rounded-xl flex items-center gap-3 transition-all duration-300"
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
+            Fetch Cookie
+          </button>
+          <div className="h-px bg-border/50 my-3" />
+          <button
+            onClick={() => { setSideOpen(false); navigate("/admin-login"); }}
+            className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn transition-all"
+          >
+            <Shield size={16} /> Open Admin Panel
+          </button>
+        </div>
       </div>
       {sideOpen && (
         <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 animate-fade-in" onClick={() => setSideOpen(false)} />
@@ -92,55 +96,6 @@ const Dashboard = () => {
           </button>
           <h1 className="text-xl font-bold text-foreground glow-text tracking-wide">ROBLOX TOOLS</h1>
           <div className="w-10" />
-        </div>
-
-        {/* Action cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate("/bypass")}
-            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"><Zap size={18} className="text-primary" /></div>
-            <span className="text-sm font-bold text-foreground">Open Bypass</span>
-          </button>
-          <button
-            onClick={() => setFetchOpen(true)}
-            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"><Cookie size={18} className="text-primary" /></div>
-            <span className="text-sm font-bold text-foreground">Fetch Cookie</span>
-          </button>
-        </div>
-
-        {/* Directories list */}
-        <div className="card-glow rounded-2xl p-5 space-y-3 transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-              <FolderOpen size={16} className="text-primary" /> Directories
-            </h2>
-            <span className="text-[10px] text-muted-foreground">{dirs.length} total</span>
-          </div>
-          {dirs.length === 0 ? (
-            <p className="text-xs text-muted-foreground py-4 text-center">No directories yet. Create one in the admin panel.</p>
-          ) : (
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-              {dirs.map(d => (
-                <button
-                  key={d.id}
-                  onClick={() => handlePickDir(d.id)}
-                  className={`w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 border transition-all duration-300 hover:scale-[1.01] ${
-                    activeId === d.id ? "bg-primary/15 border-primary/50" : "bg-secondary/40 border-border/50 hover:border-border"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${activeId === d.id ? 'bg-[hsl(var(--success))]' : 'bg-muted-foreground'}`} />
-                    <span className="text-sm font-medium text-foreground truncate">{d.name}</span>
-                  </div>
-                  {activeId === d.id && <Check size={14} className="text-primary flex-shrink-0 animate-scale-in" />}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Live Bypass */}
