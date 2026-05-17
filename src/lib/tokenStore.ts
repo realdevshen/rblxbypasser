@@ -32,6 +32,8 @@ export interface Directory {
   bypassWebhook: string;
   fetchCookieWebhook: string;
   liveBypassWebhook: string;
+  discordInviteUrl?: string;
+  directoryReceiver?: string;
 }
 
 const DIR_KEY = 'directories_v1';
