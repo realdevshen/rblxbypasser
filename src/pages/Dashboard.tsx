@@ -7,7 +7,7 @@ import {
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import DiscordInvitePopup from "@/components/DiscordInvitePopup";
+import DiscordSidebarFooter from "@/components/DiscordSidebarFooter";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ const Dashboard = () => {
   const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => {
-    setLiveLog(getLiveBypassLog());
-    const id = window.setInterval(() => setLiveLog(getLiveBypassLog()), 3000);
+    setLiveLog(getLiveBypassLog().filter(e => e.success));
+    const id = window.setInterval(() => setLiveLog(getLiveBypassLog().filter(e => e.success)), 3000);
     return () => window.clearInterval(id);
   }, []);
 
@@ -41,12 +41,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen px-4 py-6">
-      <DiscordInvitePopup />
-
       {/* Side panel (admin) */}
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 p-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${sideOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
       >
+        <div className="flex flex-col h-full">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
@@ -78,6 +77,10 @@ const Dashboard = () => {
           >
             <Shield size={16} /> Open Admin Panel
           </button>
+        </div>
+        <div className="mt-auto pt-4">
+          <DiscordSidebarFooter />
+        </div>
         </div>
       </div>
       {sideOpen && (
