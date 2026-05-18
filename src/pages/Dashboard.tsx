@@ -8,7 +8,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import DiscordInvitePopup from "@/components/DiscordInvitePopup";
-import DiscordSidebarFooter from "@/components/DiscordSidebarFooter";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -80,7 +79,6 @@ const Dashboard = () => {
             <Shield size={16} /> Open Admin Panel
           </button>
         </div>
-        <DiscordSidebarFooter />
       </div>
       {sideOpen && (
         <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 animate-fade-in transition-opacity duration-300" onClick={() => setSideOpen(false)} />
@@ -145,7 +143,7 @@ const Dashboard = () => {
             <button
               onClick={handleFetch}
               disabled={loading}
-              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all"
+              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)]"
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Fetch Cookie</>}
             </button>
