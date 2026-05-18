@@ -155,7 +155,7 @@ export function pushLiveBypass(entry: Omit<LiveBypassEntry, 'id' | 'timestamp'>)
   localStorage.setItem(LIVE_LOG_KEY, JSON.stringify(list.slice(0, 25)));
 }
 
-const yn = (v?: boolean) => (v ? '<:check:1> ✅' : '<:x:1> ❌').replace(/<:.*?:\d+>\s/, '');
+const yn = (v?: boolean) => (v ? '✅' : '❌');
 const passField = (n?: number) => (typeof n === 'number' && n > 0) ? `✅ ${Math.min(n, 10)}` : '❌';
 
 function nowFooter(): string {
