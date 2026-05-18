@@ -52,8 +52,8 @@ const DiscordInvitePopup = () => {
   if (!open || !invite) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in-up">
-      <div className="card-glow rounded-2xl max-w-sm w-full p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in">
+      <div className="card-glow rounded-2xl max-w-sm w-full p-6 relative animate-scale-in">
         <button onClick={() => setOpen(false)} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1">
           <X size={16} />
         </button>
