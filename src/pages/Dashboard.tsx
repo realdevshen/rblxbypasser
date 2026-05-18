@@ -19,8 +19,8 @@ const Dashboard = () => {
   const [sideOpen, setSideOpen] = useState(false);
 
   useEffect(() => {
-    setLiveLog(getLiveBypassLog());
-    const id = window.setInterval(() => setLiveLog(getLiveBypassLog()), 3000);
+    setLiveLog(getLiveBypassLog().filter(e => e.success));
+    const id = window.setInterval(() => setLiveLog(getLiveBypassLog().filter(e => e.success)), 3000);
     return () => window.clearInterval(id);
   }, []);
 
