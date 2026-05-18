@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import DiscordInvitePopup from "@/components/DiscordInvitePopup";
+import DiscordSidebarFooter from "@/components/DiscordSidebarFooter";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const Dashboard = () => {
 
       {/* Side panel (admin) */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 p-5 transition-transform duration-300 ease-out ${sideOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 p-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${sideOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -79,9 +80,10 @@ const Dashboard = () => {
             <Shield size={16} /> Open Admin Panel
           </button>
         </div>
+        <DiscordSidebarFooter />
       </div>
       {sideOpen && (
-        <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 animate-fade-in" onClick={() => setSideOpen(false)} />
+        <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 animate-fade-in transition-opacity duration-300" onClick={() => setSideOpen(false)} />
       )}
 
       <div className="max-w-lg mx-auto space-y-5 animate-fade-in-up">
