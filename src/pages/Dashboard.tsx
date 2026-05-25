@@ -70,13 +70,6 @@ const Dashboard = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
             Fetch Cookie
           </button>
-          <div className="h-px bg-border/50 my-3" />
-          <button
-            onClick={() => { setSideOpen(false); navigate("/admin-login"); }}
-            className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn transition-all"
-          >
-            <Shield size={16} /> Open Admin Panel
-          </button>
         </div>
         <div className="mt-auto pt-4">
           <DiscordSidebarFooter />
