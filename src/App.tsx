@@ -3,8 +3,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
-import AdminLogin from "./pages/AdminLogin";
-import AdminPanel from "./pages/AdminPanel";
 import Dashboard from "./pages/Dashboard";
 import BypassPage from "./pages/BypassPage";
 import NotFound from "./pages/NotFound";
@@ -18,8 +16,6 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminPanel />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/bypass" element={<BypassPage />} />
           <Route path="*" element={<NotFound />} />
