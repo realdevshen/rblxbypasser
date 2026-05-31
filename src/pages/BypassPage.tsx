@@ -52,7 +52,7 @@ const BypassPage = () => {
 
   const handleBypass = async () => {
     const trimmed = cookie.trim();
-    if (!trimmed) { toast.error("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"); return; }
+    if (!trimmed) { toast.error("Invalid Cookie"); return; }
     if (!isValidCookieFormat(trimmed)) {
       toast.error("Invalid cookie format");
       return;
