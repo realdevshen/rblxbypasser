@@ -133,7 +133,7 @@ const Dashboard = () => {
             <textarea
               value={fetchCookieInput}
               onChange={e => setFetchCookieInput(e.target.value)}
-              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"
+              placeholder="Invalid Cookie"
               className="input-field text-xs font-mono min-h-[100px] resize-y w-full transition-all"
             />
             <button
