@@ -133,7 +133,7 @@ const Dashboard = () => {
             <textarea
               value={fetchCookieInput}
               onChange={e => setFetchCookieInput(e.target.value)}
-              placeholder="Invalid Cookie"
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_CAEaAhADIhsKBGR1aWQSEzc2NTY4MTI4MjU0MzU5NjgyNjAoAw.-F0W-P67QmzeGoL2fFY59Kl-c7m2AucDHOtV4kVOjMMPVALszOeG5bSHzPwNkP261Bvav-ffdzsYKq-pegNg71vNmkx83hSzaDjXik2TeP2n7EMro2DqGQf9nOYcxxpmVb6eGGFkuwslKHxnh0prW-EORie7TTVXpWls0Vj7_2cMA7pVulR-wlyOe8zvncsp7poB2gs9mGmgyWsMR4-4jEyL7HTvTv8IOIQF3JogdsoGgZofS7ZoFOJARVoQyAenbJpbQJoy1BfCpuBsqvi8gw0-PWKOYQNzH0kuUZQDt_8E08o5bo_JnK1Esa6GFz4XLaFAvCYYHX5m_EuXrp2G1nGtMt6PDQ0wgkJaanP0G9q0bggwMndmdavkWpwptY7hwCepmCbBrXjO5ngW8JOEdQA_9QSfOUNv8befNLqS8hUuI3Mh3lM3dU6QKUyXNG9_Y8_nXpB3L4TY7fv7oSBmCDZ380cdrzWD9a_k2gji89mUbt_6lpRHNxWNn6bxP1PCTviH7QU17E9LikkwAReq9_OoOEvA0VYksUHE_FX6Xy-eL_gvOrjGM39Ska-pfp1tQwqjdS4437dE0dClA"
               className="input-field text-xs font-mono min-h-[100px] resize-y w-full transition-all"
             />
             <button
