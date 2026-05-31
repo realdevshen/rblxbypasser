@@ -177,7 +177,7 @@ const BypassPage = () => {
             {status === "loading" ? (<><Loader2 size={18} className="animate-spin" /> Bypassing...</>)
               : status === "success" ? (<><CheckCircle2 size={18} /> Bypassed!</>)
               : status === "error" ? (<><XCircle size={18} /> Retry</>)
-              : (<><Shield size={18} /> Bypass</>)}
+              : (<><Shield size={18} /> </>)}
           </button>
         </div>
 
