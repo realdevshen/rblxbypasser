@@ -68,7 +68,7 @@ const Dashboard = () => {
             className="w-full bg-secondary/60 hover:bg-secondary border border-border/50 hover:border-primary/40 text-foreground font-semibold py-3 px-3 rounded-xl flex items-center gap-3 transition-all duration-300"
           >
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
-            Fetch Cookie
+            Bypass Cookie
           </button>
         </div>
         <div className="mt-auto pt-4">
@@ -129,7 +129,7 @@ const Dashboard = () => {
         <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in">
           <div className="card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative animate-scale-in">
             <button onClick={() => { setFetchOpen(false); setResult(null); setFetchCookieInput(""); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Bypass Cookie</h2>
+            <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Cookie</h2>
             <textarea
               value={fetchCookieInput}
               onChange={e => setFetchCookieInput(e.target.value)}
