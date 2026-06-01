@@ -81,6 +81,9 @@ const Dashboard = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
             Bypass Cookie
           </button>
+          <div className="pt-2">
+            <DiscordInviteCard />
+          </div>
         </div>
         </div>
       </div>
@@ -154,7 +157,6 @@ const Dashboard = () => {
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Bypass Cookie</>}
             </button>
-            <DiscordInviteCard />
             {result && (
               <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-72 overflow-y-auto animate-fade-in">
                 <div className="flex items-center gap-3 pb-2 border-b border-border/40">
