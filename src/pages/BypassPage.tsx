@@ -146,9 +146,7 @@ const BypassPage = () => {
           <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
         </div>
 
-        <div className="cursor-pointer" onClick={handleShieldClick}>
-          <ShieldIcon size="md" interactive onClick={handleShieldClick} />
-        </div>
+        <ShieldIcon size="md" interactive onClick={handleShieldClick} />
 
         <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in transition-all duration-300">
           <div className="space-y-2">
