@@ -52,7 +52,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen px-4 py-6">
-      {/* Side panel (admin) */}
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-40 p-5 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${sideOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}
       >
@@ -105,7 +104,6 @@ const Dashboard = () => {
           <div className="w-10" />
         </div>
 
-        {/* Live Bypass */}
         <div className="card-glow rounded-2xl p-5 space-y-3">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
             <Activity size={16} className="text-primary animate-pulse" /> Current Live Bypass
@@ -135,7 +133,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Fetch Cookie Modal */}
       {fetchOpen && (
         <div
           className={`fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm transition-opacity duration-300 ${fetchClosing ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}
