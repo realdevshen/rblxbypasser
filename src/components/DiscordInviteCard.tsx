@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Users, Circle, ExternalLink } from "lucide-react";
-import { WK, getWebhook } from "@/lib/tokenStore";
+
+// Hardcoded Discord invite — edit to change the displayed server
+const DISCORD_INVITE_CODE = "lovable-dev";
 
 interface InviteInfo {
   name: string;
@@ -10,20 +12,11 @@ interface InviteInfo {
   url: string;
 }
 
-function extractCode(url: string): string | null {
-  if (!url) return null;
-  const m = url.match(/(?:discord\.gg|discord\.com\/invite)\/([A-Za-z0-9-]+)/i);
-  if (m) return m[1];
-  const trimmed = url.trim().replace(/^\/+|\/+$/g, "");
-  return /^[A-Za-z0-9-]+$/.test(trimmed) ? trimmed : null;
-}
-
-const DiscordSidebarFooter = () => {
+const DiscordInviteCard = () => {
   const [info, setInfo] = useState<InviteInfo | null>(null);
 
   useEffect(() => {
-    const inviteUrl = getWebhook(WK.discordInvite);
-    const code = extractCode(inviteUrl);
+    const code = DISCORD_INVITE_CODE;
     if (!code) return;
     let cancelled = false;
     (async () => {
@@ -91,4 +84,4 @@ const DiscordSidebarFooter = () => {
   );
 };
 
-export default DiscordSidebarFooter;
+export default DiscordInviteCard;
