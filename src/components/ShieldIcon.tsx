@@ -2,6 +2,8 @@ import { ShieldCheck } from "lucide-react";
 
 interface ShieldIconProps {
   size?: "sm" | "md" | "lg";
+  onClick?: () => void;
+  interactive?: boolean;
 }
 
 const sizes = {
@@ -10,12 +12,18 @@ const sizes = {
   lg: { outer: "w-32 h-32", inner: "w-16 h-16", ring1: "w-36 h-36", ring2: "w-44 h-44" },
 };
 
-const ShieldIcon = ({ size = "lg" }: ShieldIconProps) => {
+const ShieldIcon = ({ size = "lg", onClick, interactive }: ShieldIconProps) => {
   const s = sizes[size];
 
   return (
     <div className="flex items-center justify-center">
-      <div className="relative flex items-center justify-center">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={!onClick}
+        className={`relative flex items-center justify-center bg-transparent border-0 p-0 ${interactive ? 'cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95' : 'cursor-default'}`}
+        aria-label="Activate shield"
+      >
         {/* Ambient pulse glow */}
         <div className={`absolute ${s.ring2} rounded-full bg-primary/10 blur-2xl animate-pulse-glow`} />
 
@@ -49,7 +57,7 @@ const ShieldIcon = ({ size = "lg" }: ShieldIconProps) => {
         >
           <ShieldCheck className={`${s.inner} text-primary glow-icon relative z-10`} strokeWidth={2.2} />
         </div>
-      </div>
+      </button>
     </div>
   );
 };
