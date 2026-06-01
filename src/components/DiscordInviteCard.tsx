@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Users, Circle, ExternalLink } from "lucide-react";
 
 // Hardcoded Discord invite — edit to change the displayed server
-const DISCORD_INVITE_CODE = "lovable-dev";
+const DISCORD_INVITE_CODE = "s2UQ4BP2SE";
 
 interface InviteInfo {
   name: string;
