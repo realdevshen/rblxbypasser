@@ -81,6 +81,9 @@ const Dashboard = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
             Bypass Cookie
           </button>
+          <div className="pt-2">
+            <DiscordInviteCard />
+          </div>
         </div>
         </div>
       </div>
