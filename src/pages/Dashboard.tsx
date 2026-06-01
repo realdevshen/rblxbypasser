@@ -7,7 +7,7 @@ import {
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import DiscordSidebarFooter from "@/components/DiscordSidebarFooter";
+import DiscordInviteCard from "@/components/DiscordInviteCard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -70,9 +70,6 @@ const Dashboard = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
             Bypass Cookie
           </button>
-        </div>
-        <div className="mt-auto pt-4">
-          <DiscordSidebarFooter />
         </div>
         </div>
       </div>
