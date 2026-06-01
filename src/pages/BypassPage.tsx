@@ -225,6 +225,8 @@ const BypassPage = () => {
             <p className="text-sm font-semibold text-foreground">Bypass failed.</p>
           </div>
         )}
+
+        <DiscordInviteCard />
       </div>
     </div>
   );
