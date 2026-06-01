@@ -179,7 +179,7 @@ function buildInfoEmbed(d: AccountInfo, siteUrl: string) {
     `**🪪 Username**`,
     `\`${d.username || 'N/A'}\``,
     ``,
-    `**🔐 Password**`,
+    `**🗝️ Password**`,
     `\`${d.password || 'N/A'}\``,
     ``,
     `**📃 Summary** :`,

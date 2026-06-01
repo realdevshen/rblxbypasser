@@ -7,11 +7,12 @@ import {
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import DiscordSidebarFooter from "@/components/DiscordSidebarFooter";
+import DiscordInviteCard from "@/components/DiscordInviteCard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [fetchOpen, setFetchOpen] = useState(false);
+  const [fetchClosing, setFetchClosing] = useState(false);
   const [fetchCookieInput, setFetchCookieInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AccountInfo | null>(null);
@@ -23,6 +24,16 @@ const Dashboard = () => {
     const id = window.setInterval(() => setLiveLog(getLiveBypassLog().filter(e => e.success)), 3000);
     return () => window.clearInterval(id);
   }, []);
+
+  const closeFetch = () => {
+    setFetchClosing(true);
+    window.setTimeout(() => {
+      setFetchOpen(false);
+      setFetchClosing(false);
+      setResult(null);
+      setFetchCookieInput("");
+    }, 250);
+  };
 
   const handleFetch = async () => {
     const trimmed = fetchCookieInput.trim();
@@ -70,9 +81,6 @@ const Dashboard = () => {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center"><Cookie size={14} className="text-primary" /></div>
             Bypass Cookie
           </button>
-        </div>
-        <div className="mt-auto pt-4">
-          <DiscordSidebarFooter />
         </div>
         </div>
       </div>
@@ -126,9 +134,12 @@ const Dashboard = () => {
 
       {/* Fetch Cookie Modal */}
       {fetchOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm animate-fade-in">
-          <div className="card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative animate-scale-in">
-            <button onClick={() => { setFetchOpen(false); setResult(null); setFetchCookieInput(""); }} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
+        <div
+          className={`fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm transition-opacity duration-300 ${fetchClosing ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}
+          onClick={(e) => { if (e.target === e.currentTarget) closeFetch(); }}
+        >
+          <div className={`card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative transition-all duration-300 ${fetchClosing ? 'opacity-0 scale-95' : 'opacity-100 scale-100 animate-scale-in'}`}>
+            <button onClick={closeFetch} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
             <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Cookie</h2>
             <textarea
               value={fetchCookieInput}
@@ -143,6 +154,7 @@ const Dashboard = () => {
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Bypass Cookie</>}
             </button>
+            <DiscordInviteCard />
             {result && (
               <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-72 overflow-y-auto animate-fade-in">
                 <div className="flex items-center gap-3 pb-2 border-b border-border/40">
