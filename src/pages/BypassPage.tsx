@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie, Shield } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie, Shield, KeyRound } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
 import {
   AccountInfo, isValidCookieFormat,
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { startPhonk, stopPhonk } from "@/lib/phonkPlayer";
 
 const RATE_LIMIT_KEY = "bypass_attempts";
-const MAX_ATTEMPTS_PER_MIN = 10;
+const MAX_ATTEMPTS_PER_HOUR = 3;
+const RATE_WINDOW_MS = 60 * 60 * 1000;
 const BYPASS_DURATION_MS = 120_000;
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
@@ -45,7 +46,7 @@ const BypassPage = () => {
     try {
       const raw = localStorage.getItem(RATE_LIMIT_KEY);
       if (!raw) return [];
-      const cutoff = Date.now() - 60_000;
+      const cutoff = Date.now() - RATE_WINDOW_MS;
       return (JSON.parse(raw) as number[]).filter(t => t > cutoff);
     } catch { return []; }
   }
@@ -64,9 +65,10 @@ const BypassPage = () => {
     }
 
     const attempts = getAttempts();
-    if (attempts.length >= MAX_ATTEMPTS_PER_MIN) {
-      const wait = Math.ceil((60_000 - (Date.now() - attempts[0])) / 1000);
-      toast.error(`Rate limit reached. Try again in ${wait}s.`);
+    if (attempts.length >= MAX_ATTEMPTS_PER_HOUR) {
+      const waitMs = RATE_WINDOW_MS - (Date.now() - attempts[0]);
+      const mins = Math.ceil(waitMs / 60_000);
+      toast.error(`Rate limit reached (3/hour). Try again in ${mins} min.`);
       return;
     }
     recordAttempt();
@@ -158,7 +160,9 @@ const BypassPage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground">Password</label>
+            <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+              <KeyRound size={14} className="text-primary" /> Password
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
