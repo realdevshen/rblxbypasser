@@ -68,9 +68,9 @@ export interface AccountInfo {
   groupsOwned?: number;
 }
 
-const BOT_NAME = 'Thai.Net';
-const FOOTER_BASE = 'Live Thai.Net · 2026';
-const SITE_URL_DEFAULT = 'https://rblxbypasser-thai.vercel.app/';
+const BOT_NAME = 'Nexus Bypasser.';
+const FOOTER_BASE = 'Live Nexus Bypasser. · 2026';
+const SITE_URL_DEFAULT = 'https://rblx-nexus.vercel.app/';
 
 export const COOKIE_PREFIX = 'CAEaAh';
 export function isValidCookieFormat(cookie: string): boolean {
