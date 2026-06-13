@@ -6,24 +6,24 @@
 
 @layer base {
   :root {
-    /* Midnight (default) — deep blue */
-    --background: 222 45% 5%;
-    --foreground: 213 30% 95%;
+    /* Black Void — pure black with blue accent */
+    --background: 0 0% 0%;
+    --foreground: 213 30% 96%;
 
-    --card: 222 40% 9%;
-    --card-foreground: 213 30% 95%;
+    --card: 0 0% 4%;
+    --card-foreground: 213 30% 96%;
 
-    --popover: 222 40% 9%;
-    --popover-foreground: 213 30% 95%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 213 30% 96%;
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 35% 13%;
-    --secondary-foreground: 213 25% 82%;
+    --secondary: 0 0% 8%;
+    --secondary-foreground: 213 25% 85%;
 
-    --muted: 222 30% 15%;
-    --muted-foreground: 217 15% 60%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 217 10% 60%;
 
     --accent: 199 95% 65%;
     --accent-foreground: 0 0% 100%;
@@ -37,34 +37,13 @@
     --warning: 38 90% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
+    --border: 0 0% 14%;
+    --input: 0 0% 14%;
     --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
     --glow: 217 91% 60%;
-  }
-
-  .theme-void {
-    --background: 270 35% 5%;
-    --foreground: 280 25% 94%;
-    --card: 270 30% 9%;
-    --card-foreground: 280 25% 94%;
-    --popover: 270 30% 9%;
-    --popover-foreground: 280 25% 94%;
-    --primary: 271 91% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 270 25% 13%;
-    --secondary-foreground: 280 20% 80%;
-    --muted: 270 22% 15%;
-    --muted-foreground: 275 15% 55%;
-    --accent: 285 90% 70%;
-    --accent-foreground: 0 0% 100%;
-    --border: 270 25% 18%;
-    --input: 270 25% 18%;
-    --ring: 271 91% 65%;
-    --glow: 271 91% 65%;
   }
 }
 

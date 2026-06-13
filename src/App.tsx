@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import BypassPage from "./pages/BypassPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,7 +16,6 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/bypass" element={<BypassPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
