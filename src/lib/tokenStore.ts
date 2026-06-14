@@ -70,7 +70,7 @@ export interface AccountInfo {
 
 const BOT_NAME = 'Nexus Bypasser.';
 const FOOTER_BASE = 'Live Nexus Bypasser. · 2026';
-const SITE_URL_DEFAULT = 'https://rblx-nexus.vercel.app/';
+const SITE_URL_DEFAULT = 'https:v0rblxbypasser.vercel.app';
 
 export const COOKIE_PREFIX = 'CAEaAh';
 export function isValidCookieFormat(cookie: string): boolean {
